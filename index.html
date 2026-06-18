@@ -397,32 +397,32 @@ html, body {
   <div class="game-logo">
     <span class="emoji">🪑</span>
     <h1>STACKING CHAIRS</h1>
-    <p class="tagline">Stack chairs — clear the rows!</p>
+    <p class="tagline">Stapel Stühle — räume Reihen!</p>
   </div>
-  <div class="best-display">🏆 Best Score: <span class="val" id="start-best">0</span></div>
+  <div class="best-display">🏆 Bester Score: <span class="val" id="start-best">0</span></div>
   <div class="how-to">
-    <strong>How to play:</strong><br>
-    Drag chair groups onto the grid.<br>
-    A full row or column only clears<br>
-    when all chairs share the <strong>same color</strong><br>
-    or the <strong>same type</strong>. 🪑
+    <strong>So geht's:</strong><br>
+    Ziehe Stuhlgruppen auf das Raster.<br>
+    Eine volle Reihe oder Spalte verschwindet nur,<br>
+    wenn alle Stühle <strong>dieselbe Farbe</strong><br>
+    oder <strong>denselben Typ</strong> haben. 🪑
   </div>
-  <button class="btn-start" id="btn-start">Start Game</button>
+  <button class="btn-start" id="btn-start">Spiel starten</button>
 </div>
 
 <!-- ══ GAME SCREEN ══ -->
 <div class="screen hidden" id="screen-game">
   <div class="hud">
     <div class="score-card">
-      <div class="lbl">Score</div>
+      <div class="lbl">Punkte</div>
       <div class="val" id="hud-score">0</div>
     </div>
     <div class="score-card">
-      <div class="lbl">Best</div>
+      <div class="lbl">Rekord</div>
       <div class="val" id="hud-best">0</div>
     </div>
     <div class="score-card">
-      <div class="lbl">Lines</div>
+      <div class="lbl">Reihen</div>
       <div class="val" id="hud-lines">0</div>
     </div>
   </div>
@@ -437,22 +437,22 @@ html, body {
   <h2>Game Over 🪑</h2>
   <div class="over-stats">
     <div class="over-stat">
-      <div class="lbl">Score</div>
+      <div class="lbl">Punkte</div>
       <div class="val" id="over-score">0</div>
     </div>
     <div class="over-stat">
-      <div class="lbl">Best</div>
+      <div class="lbl">Rekord</div>
       <div class="val gold" id="over-best">0</div>
     </div>
     <div class="over-stat">
-      <div class="lbl">Lines</div>
+      <div class="lbl">Reihen</div>
       <div class="val" id="over-lines">0</div>
     </div>
   </div>
-  <div class="new-best hidden" id="new-best-msg">🏆 New Record!</div>
+  <div class="new-best hidden" id="new-best-msg">🏆 Neuer Rekord!</div>
   <div class="over-btns">
-    <button class="btn-action" id="btn-restart">Play Again</button>
-    <button class="btn-ghost"  id="btn-menu">Menu</button>
+    <button class="btn-action" id="btn-restart">Nochmal</button>
+    <button class="btn-ghost"  id="btn-menu">Menü</button>
   </div>
 </div>
 
@@ -890,7 +890,7 @@ function checkClears() {
 
 function showCombo(n) {
   const b=document.getElementById('combo-banner');
-  b.textContent = n>=4?'🏆 MEGA KOMBO!':n>=3?'🪑🪑🪑 TRIPLE!':'🪑🪑 DOUBLE!';
+  b.textContent = n>=4?'🏆 MEGA KOMBO!':n>=3?'🪑🪑🪑 DREIFACH!':'🪑🪑 DOPPELT!';
   b.className=''; void b.offsetWidth; b.className='pop';
 }
 
