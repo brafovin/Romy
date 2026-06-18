@@ -499,7 +499,7 @@ const SHAPES = [
 /* ═══════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════ */
-let grid, score, bestScore, linesCleared, pieces;
+let grid, score, bestScore, linesCleared, pieces, batchColor;
 let dragIdx=null, dragOff=[0,0], ghostInfo=null;
 
 /* ═══════════════════════════════════════════
@@ -681,11 +681,38 @@ function renderGrid() {
 /* ═══════════════════════════════════════════
    PIECES
 ═══════════════════════════════════════════ */
-function randPiece() {
-  return {
-    shape: SHAPES[Math.floor(Math.random()*SHAPES.length)],
-    color: COLORS[Math.floor(Math.random()*COLORS.length)],
-  };
+function pickNewBatchColor() {
+  let c;
+  do { c = COLORS[Math.floor(Math.random()*COLORS.length)]; } while(c === batchColor);
+  batchColor = c;
+}
+
+function boardIsEmpty() {
+  return grid.every(row=>row.every(v=>!v));
+}
+
+// Simulate placing shape at (ar,ac) and check if any row/col becomes full
+function canCompleteALine(shape) {
+  for(let ar=0; ar<GS; ar++) {
+    for(let ac=0; ac<GS; ac++) {
+      if(!canPlace(shape,ar,ac)) continue;
+      const sim = grid.map(row=>[...row]);
+      shape.cells.forEach(([dr,dc])=>{ sim[ar+dr][ac+dc]=1; });
+      for(let r=0;r<GS;r++) if(sim[r].every(v=>v)) return true;
+      for(let c=0;c<GS;c++) if(sim.every(row=>row[c])) return true;
+    }
+  }
+  return false;
+}
+
+function smartPiece() {
+  // Try to find a shape that could complete a row/col somewhere on the current board
+  for(let i=0; i<40; i++) {
+    const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+    if(canCompleteALine(shape)) return {shape, color:batchColor};
+  }
+  // Fallback: any shape with current batch color
+  return {shape: SHAPES[Math.floor(Math.random()*SHAPES.length)], color:batchColor};
 }
 
 function buildTray() {
@@ -724,7 +751,7 @@ function buildTray() {
 }
 
 function newPieces() {
-  pieces=[randPiece(),randPiece(),randPiece()];
+  pieces=[smartPiece(),smartPiece(),smartPiece()];
   buildTray();
 }
 
@@ -832,7 +859,7 @@ function placePiece(idx,ar,ac) {
   p.shape.cells.forEach(([dr,dc])=>{
     grid[ar+dr][ac+dc]={color:p.color, shapeId:p.shape.id};
   });
-  pieces[idx]=randPiece();   // immediately replace with a fresh piece
+  pieces[idx]=null;  // wait until all 3 are placed before generating new batch
   soundPlace();
   renderGrid();
   buildTray();
@@ -877,6 +904,8 @@ function checkClears() {
     updateHUD();
     showScorePop(pts, cellEls[0]);
     renderGrid();
+    // if board just became empty, switch to a new batch color
+    if(boardIsEmpty()) pickNewBatchColor();
     checkContinue();
   },450);
 }
@@ -907,6 +936,9 @@ function updateHUD() {
 }
 
 function checkContinue() {
+  // All 3 placed → generate new batch
+  if(pieces.every(p=>!p)) newPieces();
+
   const ok=pieces.some(p=>{
     if(!p) return false;
     for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(canPlace(p.shape,r,c)) return true;
@@ -931,6 +963,7 @@ function gameOver() {
 function startGame() {
   grid=Array.from({length:GS},()=>Array(GS).fill(null));
   score=0; linesCleared=0;
+  batchColor = COLORS[Math.floor(Math.random()*COLORS.length)];
   buildGrid();
   updateHUD();
   renderGrid();
