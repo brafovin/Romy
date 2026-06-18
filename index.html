@@ -337,6 +337,16 @@ html, body {
 }
 .ufo-overlay.landing { animation:ufoLand .6s cubic-bezier(.22,1,.36,1) forwards; }
 
+/* ─── Flood fill animation ─── */
+.cell.flood-pop {
+  animation:floodPop .35s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes floodPop {
+  0%   { transform:scale(0) rotate(-20deg); opacity:0; }
+  65%  { transform:scale(1.18) rotate(6deg); opacity:1; }
+  100% { transform:scale(1) rotate(0deg); opacity:1; }
+}
+
 /* Drag ghost */
 #ghost {
   position:fixed; pointer-events:none;
@@ -1122,12 +1132,31 @@ function checkContinue() {
   });
   if(!ok) {
     if(speedMode) {
-      // Speed mode: clear the 2 most filled rows to make space — only the timer ends the game
       setTimeout(emergencyClear, 400);
     } else {
-      setTimeout(gameOver, 400);
+      setTimeout(floodAndGameOver, 300);
     }
   }
+}
+
+function floodAndGameOver() {
+  // Collect all empty cells and shuffle them for a random flood effect
+  const empty = [];
+  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(!grid[r][c]) empty.push({r,c});
+  empty.sort(()=>Math.random()-.5);
+
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=empty.length){ clearInterval(iv); setTimeout(gameOver,500); return; }
+    const {r,c}=empty[i++];
+    const col=COLORS[Math.floor(Math.random()*COLORS.length)];
+    grid[r][c]={color:col,shapeId:'flood'};
+    const el=cell(r,c);
+    el.className='cell occupied flood-pop';
+    el.style.background=col.bg;
+    el.style.borderColor=col.lt;
+    el.innerHTML=chairHTML(col);
+  }, 28);
 }
 
 function anyPieceFits() {
