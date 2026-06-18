@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stuhl Blast 🪑</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1a0a2e;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  user-select: none;
+}
+
+h1 {
+  color: #fff;
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px #a855f7;
+  letter-spacing: 2px;
+}
+
+#score-area {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 16px;
+}
+
+.score-box {
+  background: #2d1b4e;
+  border: 2px solid #7c3aed;
+  border-radius: 12px;
+  padding: 8px 20px;
+  text-align: center;
+  color: #e2d4f0;
+}
+
+.score-box .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+.score-box .value { font-size: 1.5rem; font-weight: bold; color: #c084fc; }
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(8, 52px);
+  grid-template-rows: repeat(8, 52px);
+  gap: 3px;
+  background: #2d1b4e;
+  border: 3px solid #7c3aed;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 0 30px #7c3aed55;
+}
+
+.cell {
+  width: 52px;
+  height: 52px;
+  background: #1e0f3a;
+  border-radius: 6px;
+  border: 1px solid #3d2260;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  transition: background 0.1s;
+  position: relative;
+}
+
+.cell.occupied { border-color: transparent; }
+.cell.highlight { background: #4a2a7a; border-color: #a855f7; }
+.cell.invalid { background: #4a1a1a; border-color: #ef4444; }
+
+.cell.clearing {
+  animation: clearAnim 0.4s ease-out forwards;
+}
+
+@keyframes clearAnim {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3) rotate(15deg); opacity: 0.7; }
+  100% { transform: scale(0) rotate(30deg); opacity: 0; }
+}
+
+/* Chair CSS drawing */
+.chair-icon {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chair-back {
+  width: 28px;
+  height: 10px;
+  border-radius: 4px 4px 0 0;
+  border: 2px solid rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.chair-seat {
+  width: 32px;
+  height: 14px;
+  border-radius: 3px;
+  border: 2px solid rgba(0,0,0,0.3);
+  margin-top: 1px;
+}
+
+.chair-legs {
+  display: flex;
+  gap: 14px;
+  margin-top: 1px;
+}
+
+.chair-leg {
+  width: 4px;
+  height: 8px;
+  border-radius: 0 0 2px 2px;
+  opacity: 0.8;
+}
+
+/* Piece tray */
+#piece-tray {
+  display: flex;
+  gap: 16px;
+  background: #2d1b4e;
+  border: 2px solid #7c3aed;
+  border-radius: 16px;
+  padding: 16px;
+  min-width: 420px;
+  justify-content: space-around;
+  align-items: center;
+  min-height: 120px;
+}
+
+.piece-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 90px;
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.piece-wrapper:hover { transform: scale(1.08); }
+.piece-wrapper.dragging { opacity: 0.3; cursor: grabbing; }
+.piece-wrapper.used { opacity: 0.15; pointer-events: none; }
+
+.piece-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.piece-cell {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* Drag ghost */
+#drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  gap: 2px;
+}
+
+/* Game Over */
+#game-over {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#game-over.show { display: flex; }
+
+#game-over h2 {
+  color: #fff;
+  font-size: 3rem;
+  text-shadow: 0 0 30px #ef4444;
+}
+
+#game-over .final-score {
+  color: #c084fc;
+  font-size: 1.5rem;
+}
+
+#restart-btn {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+#restart-btn:hover { background: #9333ea; transform: scale(1.05); }
+
+/* Combo flash */
+#combo-flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fbbf24;
+  font-size: 3rem;
+  font-weight: bold;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 200;
+  text-shadow: 0 0 20px #f59e0b;
+}
+
+#combo-flash.show {
+  animation: flashAnim 0.8s ease-out forwards;
+}
+
+@keyframes flashAnim {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+  50% { opacity: 1; transform: translate(-50%, -70%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -90%) scale(1); }
+}
+
+.info-text {
+  color: #7c3aed;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-top: -8px;
+}
+</style>
+</head>
+<body>
+<h1>🪑 Stuhl Blast</h1>
+<div id="score-area">
+  <div class="score-box"><div class="label">Punkte</div><div class="value" id="score">0</div></div>
+  <div class="score-box"><div class="label">Bestzeit</div><div class="value" id="best">0</div></div>
+  <div class="score-box"><div class="label">Reihen</div><div class="value" id="cleared">0</div></div>
+</div>
+<p class="info-text">Ziehe Stühle auf das Raster — fülle eine Reihe oder Spalte um sie zu leeren!</p>
+
+<div id="game-container">
+  <div id="grid"></div>
+  <div id="piece-tray"></div>
+</div>
+
+<div id="drag-ghost"></div>
+<div id="combo-flash">🪑 KOMBO!</div>
+
+<div id="game-over">
+  <h2>🪑 Game Over!</h2>
+  <div class="final-score">Punkte: <span id="final-score">0</span></div>
+  <button id="restart-btn">Nochmal spielen</button>
+</div>
+
+<script>
+const GRID_SIZE = 8;
+const COLORS = [
+  { bg: '#6d28d9', light: '#8b5cf6' },
+  { bg: '#0369a1', light: '#0ea5e9' },
+  { bg: '#065f46', light: '#10b981' },
+  { bg: '#9a3412', light: '#f97316' },
+  { bg: '#831843', light: '#ec4899' },
+  { bg: '#713f12', light: '#eab308' },
+  { bg: '#1e3a5f', light: '#38bdf8' },
+  { bg: '#4a1942', light: '#d946ef' },
+];
+
+// Piece shapes: array of [row, col] offsets
+const SHAPES = [
+  { name: '1x1', cells: [[0,0]] },
+  { name: '1x2', cells: [[0,0],[0,1]] },
+  { name: '2x1', cells: [[0,0],[1,0]] },
+  { name: '1x3', cells: [[0,0],[0,1],[0,2]] },
+  { name: '3x1', cells: [[0,0],[1,0],[2,0]] },
+  { name: '2x2', cells: [[0,0],[0,1],[1,0],[1,1]] },
+  { name: 'L',   cells: [[0,0],[1,0],[2,0],[2,1]] },
+  { name: 'J',   cells: [[0,1],[1,1],[2,0],[2,1]] },
+  { name: 'T',   cells: [[0,0],[0,1],[0,2],[1,1]] },
+  { name: 'S',   cells: [[0,1],[0,2],[1,0],[1,1]] },
+  { name: 'Z',   cells: [[0,0],[0,1],[1,1],[1,2]] },
+  { name: '2x3', cells: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]] },
+  { name: 'U',   cells: [[0,0],[0,2],[1,0],[1,1],[1,2]] },
+  { name: 'line4', cells: [[0,0],[0,1],[0,2],[0,3]] },
+  { name: 'line4v', cells: [[0,0],[1,0],[2,0],[3,0]] },
+  { name: 'corner', cells: [[0,0],[1,0],[1,1]] },
+];
+
+let grid = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(null));
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('chairblast_best') || '0');
+let clearedTotal = 0;
+let pieces = [null, null, null];
+let pieceColors = [null, null, null];
+let dragPieceIdx = null;
+let dragOffsetCell = [0, 0];
+
+const gridEl = document.getElementById('grid');
+const trayEl = document.getElementById('piece-tray');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const clearedEl = document.getElementById('cleared');
+const ghostEl = document.getElementById('drag-ghost');
+const gameOverEl = document.getElementById('game-over');
+const finalScoreEl = document.getElementById('final-score');
+const comboEl = document.getElementById('combo-flash');
+
+bestEl.textContent = bestScore;
+
+function buildGrid() {
+  gridEl.innerHTML = '';
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function renderGrid() {
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const cell = getCell(r, c);
+      if (!cell) continue;
+      const color = grid[r][c];
+      if (color) {
+        cell.className = 'cell occupied';
+        cell.style.background = color.bg;
+        cell.style.borderColor = color.light;
+        cell.innerHTML = makeChairHTML(color);
+      } else {
+        cell.className = 'cell';
+        cell.style.background = '';
+        cell.style.borderColor = '';
+        cell.innerHTML = '';
+      }
+    }
+  }
+}
+
+function makeChairHTML(color) {
+  return `<div class="chair-icon">
+    <div class="chair-back" style="background:${color.light}"></div>
+    <div class="chair-seat" style="background:${color.bg}"></div>
+    <div class="chair-legs">
+      <div class="chair-leg" style="background:${color.light}"></div>
+      <div class="chair-leg" style="background:${color.light}"></div>
+    </div>
+  </div>`;
+}
+
+function getCell(r, c) {
+  return gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+}
+
+function randomPiece() {
+  const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  return { shape, color };
+}
+
+function buildPieceTray() {
+  trayEl.innerHTML = '';
+  pieces.forEach((p, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'piece-wrapper' + (p === null ? ' used' : '');
+    wrapper.dataset.idx = i;
+    if (p) {
+      const rows = Math.max(...p.shape.cells.map(c => c[0])) + 1;
+      const cols = Math.max(...p.shape.cells.map(c => c[1])) + 1;
+      const pg = document.createElement('div');
+      pg.className = 'piece-grid';
+      pg.style.gridTemplateColumns = `repeat(${cols}, 28px)`;
+      pg.style.gridTemplateRows = `repeat(${rows}, 28px)`;
+
+      const cellSet = new Set(p.shape.cells.map(([r,c]) => `${r},${c}`));
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const pc = document.createElement('div');
+          if (cellSet.has(`${r},${c}`)) {
+            pc.className = 'piece-cell';
+            pc.style.background = p.color.bg;
+            pc.style.borderColor = p.color.light;
+            pc.innerHTML = `<div style="font-size:13px">${makeTinyChair(p.color)}</div>`;
+          } else {
+            pc.style.width = '28px';
+            pc.style.height = '28px';
+          }
+          pg.appendChild(pc);
+        }
+      }
+      wrapper.appendChild(pg);
+      wrapper.addEventListener('mousedown', e => startDrag(e, i));
+      wrapper.addEventListener('touchstart', e => startDrag(e, i), { passive: false });
+    }
+    trayEl.appendChild(wrapper);
+  });
+}
+
+function makeTinyChair(color) {
+  return `<div style="width:18px;height:18px;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:13px;height:5px;background:${color.light};border-radius:2px;"></div>
+    <div style="width:15px;height:7px;background:${color.bg};border-radius:1px;margin-top:1px;"></div>
+  </div>`;
+}
+
+function generateNewPieces() {
+  pieces = [randomPiece(), randomPiece(), randomPiece()];
+  pieceColors = pieces.map(p => p ? p.color : null);
+  buildPieceTray();
+}
+
+// Dragging
+let isDragging = false;
+let currentGhostCells = [];
+
+function startDrag(e, idx) {
+  if (pieces[idx] === null) return;
+  e.preventDefault();
+  dragPieceIdx = idx;
+  isDragging = true;
+
+  const p = pieces[idx];
+  const rows = Math.max(...p.shape.cells.map(c => c[0])) + 1;
+  const cols = Math.max(...p.shape.cells.map(c => c[1])) + 1;
+
+  ghostEl.style.display = 'grid';
+  ghostEl.style.gridTemplateColumns = `repeat(${cols}, 52px)`;
+  ghostEl.style.gridTemplateRows = `repeat(${rows}, 52px)`;
+  ghostEl.style.gap = '3px';
+  ghostEl.innerHTML = '';
+
+  const cellSet = new Set(p.shape.cells.map(([r,c]) => `${r},${c}`));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const gc = document.createElement('div');
+      gc.style.width = '52px';
+      gc.style.height = '52px';
+      gc.style.borderRadius = '6px';
+      if (cellSet.has(`${r},${c}`)) {
+        gc.style.background = p.color.bg;
+        gc.style.border = `2px solid ${p.color.light}`;
+        gc.style.display = 'flex';
+        gc.style.alignItems = 'center';
+        gc.style.justifyContent = 'center';
+        gc.innerHTML = makeChairHTML(p.color);
+        gc.style.opacity = '0.85';
+      }
+      ghostEl.appendChild(gc);
+    }
+  }
+
+  // Anchor: drag from center of piece
+  dragOffsetCell = [
+    Math.floor(rows / 2),
+    Math.floor(cols / 2)
+  ];
+
+  document.getElementById('piece-tray').querySelectorAll('.piece-wrapper')[idx].classList.add('dragging');
+  moveGhost(e);
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+  document.addEventListener('touchmove', onDragMove, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
+}
+
+function getClientPos(e) {
+  if (e.touches && e.touches.length > 0) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  return { x: e.clientX, y: e.clientY };
+}
+
+function moveGhost(e) {
+  const { x, y } = getClientPos(e);
+  const p = pieces[dragPieceIdx];
+  const rows = Math.max(...p.shape.cells.map(c => c[0])) + 1;
+  const cols = Math.max(...p.shape.cells.map(c => c[1])) + 1;
+  ghostEl.style.left = (x - dragOffsetCell[1] * 55 - 26) + 'px';
+  ghostEl.style.top = (y - dragOffsetCell[0] * 55 - 26) + 'px';
+
+  // Highlight grid cells
+  clearHighlights();
+  const target = getCellUnderCursor(x, y);
+  if (target) {
+    const [tr, tc] = target;
+    const anchorR = tr - dragOffsetCell[0];
+    const anchorC = tc - dragOffsetCell[1];
+    const valid = canPlace(pieces[dragPieceIdx].shape, anchorR, anchorC);
+    pieces[dragPieceIdx].shape.cells.forEach(([dr, dc]) => {
+      const cell = getCell(anchorR + dr, anchorC + dc);
+      if (cell) {
+        cell.classList.add(valid ? 'highlight' : 'invalid');
+      }
+    });
+    currentGhostCells = { anchorR, anchorC, valid };
+  } else {
+    currentGhostCells = null;
+  }
+}
+
+function getCellUnderCursor(x, y) {
+  const rect = gridEl.getBoundingClientRect();
+  const cellSize = 55; // 52px + 3px gap
+  const pad = 8;
+  const relX = x - rect.left - pad;
+  const relY = y - rect.top - pad;
+  const c = Math.floor(relX / cellSize);
+  const r = Math.floor(relY / cellSize);
+  if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) return [r, c];
+  return null;
+}
+
+function clearHighlights() {
+  gridEl.querySelectorAll('.highlight, .invalid').forEach(el => {
+    el.classList.remove('highlight', 'invalid');
+  });
+}
+
+function onDragMove(e) {
+  e.preventDefault();
+  moveGhost(e);
+}
+
+function onDragEnd(e) {
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  document.removeEventListener('touchmove', onDragMove);
+  document.removeEventListener('touchend', onDragEnd);
+
+  ghostEl.style.display = 'none';
+  clearHighlights();
+
+  const wrapper = document.getElementById('piece-tray').querySelectorAll('.piece-wrapper')[dragPieceIdx];
+  wrapper.classList.remove('dragging');
+
+  if (currentGhostCells && currentGhostCells.valid) {
+    placePiece(dragPieceIdx, currentGhostCells.anchorR, currentGhostCells.anchorC);
+  }
+
+  isDragging = false;
+  dragPieceIdx = null;
+  currentGhostCells = null;
+}
+
+function canPlace(shape, anchorR, anchorC) {
+  return shape.cells.every(([dr, dc]) => {
+    const r = anchorR + dr;
+    const c = anchorC + dc;
+    return r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && !grid[r][c];
+  });
+}
+
+function placePiece(idx, anchorR, anchorC) {
+  const p = pieces[idx];
+  p.shape.cells.forEach(([dr, dc]) => {
+    grid[anchorR + dr][anchorC + dc] = p.color;
+  });
+  pieces[idx] = null;
+  renderGrid();
+  buildPieceTray();
+
+  // Check clears after short delay for animation
+  setTimeout(() => checkClears(), 80);
+}
+
+function checkClears() {
+  const rowsToClear = [];
+  const colsToClear = [];
+
+  for (let r = 0; r < GRID_SIZE; r++) {
+    if (grid[r].every(v => v !== null)) rowsToClear.push(r);
+  }
+  for (let c = 0; c < GRID_SIZE; c++) {
+    if (grid.every(row => row[c] !== null)) colsToClear.push(c);
+  }
+
+  if (rowsToClear.length === 0 && colsToClear.length === 0) {
+    checkGameContinues();
+    return;
+  }
+
+  // Animate clearing cells
+  const toAnimate = new Set();
+  rowsToClear.forEach(r => {
+    for (let c = 0; c < GRID_SIZE; c++) toAnimate.add(`${r},${c}`);
+  });
+  colsToClear.forEach(c => {
+    for (let r = 0; r < GRID_SIZE; r++) toAnimate.add(`${r},${c}`);
+  });
+
+  toAnimate.forEach(key => {
+    const [r, c] = key.split(',').map(Number);
+    const cell = getCell(r, c);
+    if (cell) cell.classList.add('clearing');
+  });
+
+  setTimeout(() => {
+    toAnimate.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
+      grid[r][c] = null;
+    });
+
+    const linesCleared = rowsToClear.length + colsToClear.length;
+    clearedTotal += linesCleared;
+
+    // Scoring: more lines at once = bonus
+    const base = linesCleared * GRID_SIZE * 10;
+    const bonus = linesCleared > 1 ? linesCleared * 50 : 0;
+    score += base + bonus;
+
+    scoreEl.textContent = score;
+    clearedEl.textContent = clearedTotal;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestEl.textContent = bestScore;
+      localStorage.setItem('chairblast_best', bestScore);
+    }
+
+    if (linesCleared > 1) showCombo(linesCleared);
+
+    renderGrid();
+
+    // Replenish pieces if all used
+    if (pieces.every(p => p === null)) {
+      generateNewPieces();
+    } else {
+      checkGameContinues();
+    }
+  }, 400);
+}
+
+function showCombo(lines) {
+  comboEl.textContent = lines >= 4 ? '🏆 MEGA KOMBO!' : lines >= 3 ? '🪑🪑🪑 TRIPLE!' : '🪑🪑 DOUBLE!';
+  comboEl.classList.remove('show');
+  void comboEl.offsetWidth;
+  comboEl.classList.add('show');
+}
+
+function checkGameContinues() {
+  // Check if any remaining piece can be placed anywhere
+  const canContinue = pieces.some(p => {
+    if (!p) return false;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (canPlace(p.shape, r, c)) return true;
+      }
+    }
+    return false;
+  });
+
+  if (!canContinue) {
+    setTimeout(() => {
+      finalScoreEl.textContent = score;
+      gameOverEl.classList.add('show');
+    }, 300);
+  }
+}
+
+function restartGame() {
+  grid = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(null));
+  score = 0;
+  clearedTotal = 0;
+  scoreEl.textContent = 0;
+  clearedEl.textContent = 0;
+  gameOverEl.classList.remove('show');
+  renderGrid();
+  generateNewPieces();
+}
+
+document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+// Init
+buildGrid();
+renderGrid();
+generateNewPieces();
+</script>
+</body>
+</html>

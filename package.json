@@ -1,0 +1,8 @@
+{
+  "name": "chair-blast",
+  "version": "1.0.0",
+  "description": "Block Blast with chairs - stack chairs to clear rows!",
+  "scripts": {
+    "start": "npx serve . -l 3000"
+  }
+}
