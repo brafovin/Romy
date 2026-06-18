@@ -277,6 +277,41 @@ html, body {
   display:flex; align-items:center; justify-content:center;
 }
 
+/* UFO */
+.cell.ufo-blocked {
+  box-shadow:0 0 16px #22d3eeaa, inset 0 0 10px #22d3ee33 !important;
+  border-color:#22d3ee !important;
+}
+.ufo-overlay {
+  position:absolute;
+  top:-12px; left:50%;
+  transform:translateX(-50%);
+  font-size:26px;
+  z-index:20;
+  pointer-events:none;
+  animation:ufoFloat 1.8s ease-in-out infinite;
+  filter:drop-shadow(0 0 10px #22d3ee);
+}
+.ufo-timer {
+  position:absolute;
+  bottom:2px; right:4px;
+  font-size:10px; font-weight:900;
+  color:#22d3ee;
+  z-index:21;
+  pointer-events:none;
+  text-shadow:0 0 6px #22d3ee;
+}
+@keyframes ufoFloat {
+  0%,100% { transform:translateX(-50%) translateY(0) rotate(-4deg); }
+  50%      { transform:translateX(-50%) translateY(-7px) rotate(4deg); }
+}
+@keyframes ufoLand {
+  0%   { transform:translateX(-50%) translateY(-60px) scale(.5); opacity:0; }
+  60%  { transform:translateX(-50%) translateY(4px) scale(1.1); opacity:1; }
+  100% { transform:translateX(-50%) translateY(0) scale(1); opacity:1; }
+}
+.ufo-overlay.landing { animation:ufoLand .6s cubic-bezier(.22,1,.36,1) forwards; }
+
 /* Drag ghost */
 #ghost {
   position:fixed; pointer-events:none;
@@ -500,6 +535,7 @@ const SHAPES = [
    STATE
 ═══════════════════════════════════════════ */
 let grid, score, bestScore, linesCleared, pieces, batchColor;
+let placementCount=0, ufoCell=null; // ufoCell: {r,c,remaining}
 let dragIdx=null, dragOff=[0,0], ghostInfo=null;
 
 /* ═══════════════════════════════════════════
@@ -666,16 +702,33 @@ function chairHTML(col, small=false) {
 function renderGrid() {
   for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) {
     const el=cell(r,c), e=grid[r][c];
+    const isUFO=ufoCell && ufoCell.r===r && ufoCell.c===c;
     if(e) {
-      el.className='cell occupied';
+      el.className='cell occupied'+(isUFO?' ufo-blocked':'');
       el.style.background=e.color.bg;
-      el.style.borderColor=e.color.lt;
-      el.innerHTML=chairHTML(e.color);
+      el.style.borderColor=isUFO?'#22d3ee':e.color.lt;
+      el.innerHTML=chairHTML(e.color)
+        +(isUFO?`<div class="ufo-overlay">🛸</div><div class="ufo-timer">${ufoCell.remaining}</div>`:'');
     } else {
       el.className='cell';
       el.style.background=''; el.style.borderColor=''; el.innerHTML='';
     }
   }
+}
+
+function spawnUFO() {
+  const candidates=[];
+  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++){
+    if(grid[r][c] && !(ufoCell&&ufoCell.r===r&&ufoCell.c===c))
+      candidates.push({r,c});
+  }
+  if(!candidates.length) return;
+  const pick=candidates[Math.floor(Math.random()*candidates.length)];
+  ufoCell={r:pick.r, c:pick.c, remaining:3};
+  renderGrid();
+  // play a little landing animation
+  const el=cell(pick.r,pick.c).querySelector('.ufo-overlay');
+  if(el){ el.classList.remove('landing'); void el.offsetWidth; el.classList.add('landing'); }
 }
 
 /* ═══════════════════════════════════════════
@@ -881,7 +934,18 @@ function placePiece(idx,ar,ac) {
   p.shape.cells.forEach(([dr,dc])=>{
     grid[ar+dr][ac+dc]={color:p.color, shapeId:p.shape.id};
   });
-  pieces[idx]=null;  // wait until all 3 are placed before generating new batch
+  pieces[idx]=null;
+
+  // Tick UFO countdown
+  if(ufoCell){
+    ufoCell.remaining--;
+    if(ufoCell.remaining<=0) ufoCell=null;
+  }
+
+  // Every 9 placements a UFO lands
+  placementCount++;
+  if(placementCount%9===0) setTimeout(spawnUFO, 350);
+
   soundPlace();
   renderGrid();
   buildTray();
@@ -889,10 +953,14 @@ function placePiece(idx,ar,ac) {
 }
 
 function rowClears(r) {
-  return grid[r].every(v=>v!==null);
+  if(!grid[r].every(v=>v!==null)) return false;
+  if(ufoCell && ufoCell.r===r) return false; // UFO blocks the row
+  return true;
 }
 function colClears(c) {
-  return grid.every(row=>row[c]!==null);
+  if(!grid.every(row=>row[c]!==null)) return false;
+  if(ufoCell && ufoCell.c===c) return false; // UFO blocks the column
+  return true;
 }
 
 function checkClears() {
@@ -984,7 +1052,7 @@ function gameOver() {
 ═══════════════════════════════════════════ */
 function startGame() {
   grid=Array.from({length:GS},()=>Array(GS).fill(null));
-  score=0; linesCleared=0;
+  score=0; linesCleared=0; placementCount=0; ufoCell=null;
   batchColor = COLORS[Math.floor(Math.random()*COLORS.length)];
   buildGrid();
   updateHUD();
