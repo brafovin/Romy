@@ -751,7 +751,23 @@ function buildTray() {
 }
 
 function newPieces() {
-  pieces=[smartPiece(),smartPiece(),smartPiece()];
+  const usedShapes = new Set();
+  function smartUnique() {
+    // try to find a shape that completes a line AND hasn't been used yet
+    for(let i=0; i<60; i++) {
+      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      if(usedShapes.has(shape.id)) continue;
+      if(canCompleteALine(shape)) { usedShapes.add(shape.id); return {shape,color:batchColor}; }
+    }
+    // fallback: any unused shape
+    for(let i=0; i<60; i++) {
+      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      if(!usedShapes.has(shape.id)) { usedShapes.add(shape.id); return {shape,color:batchColor}; }
+    }
+    // last resort: ignore uniqueness
+    return smartPiece();
+  }
+  pieces=[smartUnique(),smartUnique(),smartUnique()];
   buildTray();
 }
 
