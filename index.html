@@ -134,6 +134,22 @@ html, body {
 }
 .btn-start:active { transform:scale(.97); }
 
+.btn-speed {
+  background:linear-gradient(135deg,#c2410c,#f97316);
+  color:#fff;
+  border:none;
+  padding:13px 44px;
+  font-size:1.05rem;
+  font-weight:700;
+  border-radius:50px;
+  cursor:pointer;
+  letter-spacing:1px;
+  box-shadow:0 0 30px #f9731688;
+  transition:transform .15s, box-shadow .15s;
+}
+.btn-speed:hover  { transform:scale(1.06); box-shadow:0 0 50px #f97316aa; }
+.btn-speed:active { transform:scale(.97); }
+
 /* ─── Game screen ─── */
 #screen-game {
   flex-direction:column;
@@ -178,6 +194,16 @@ html, body {
   0%   { transform:scale(1); }
   50%  { transform:scale(1.35); color:#fbbf24; }
   100% { transform:scale(1); }
+}
+
+#timer-card { border-color:#f97316; }
+#timer-card .lbl { color:#f97316; }
+#timer-card .val { color:#f97316; }
+#timer-card.low { animation:timerPulse .6s ease-in-out infinite; border-color:#ef4444; }
+#timer-card.low .val { color:#ef4444; }
+@keyframes timerPulse {
+  0%,100% { box-shadow:0 0 0 0 #ef444440; }
+  50%     { box-shadow:0 0 0 8px #ef444400; }
 }
 
 #grid-wrap {
@@ -440,7 +466,10 @@ html, body {
     Wenn eine Reihe oder Spalte<br>
     <strong>komplett voll</strong> ist, verschwindet sie. 🪑
   </div>
-  <button class="btn-start" id="btn-start">Spiel starten</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    <button class="btn-start" id="btn-start">Spiel starten</button>
+    <button class="btn-speed" id="btn-speed">⚡ Speed Mode — 2 Min</button>
+  </div>
 </div>
 
 <!-- ══ GAME SCREEN ══ -->
@@ -457,6 +486,10 @@ html, body {
     <div class="score-card">
       <div class="lbl">Reihen</div>
       <div class="val" id="hud-lines">0</div>
+    </div>
+    <div class="score-card hidden" id="timer-card">
+      <div class="lbl">⚡ Zeit</div>
+      <div class="val" id="hud-timer">2:00</div>
     </div>
   </div>
   <div id="grid-wrap">
@@ -534,7 +567,8 @@ const SHAPES = [
    STATE
 ═══════════════════════════════════════════ */
 let grid, score, bestScore, linesCleared, pieces, batchColor;
-let placementCount=0, ufoCell=null; // ufoCell: {r,c,remaining}
+let placementCount=0, ufoCell=null;
+let speedMode=false, speedTimerInterval=null, timeLeft=0;
 let dragIdx=null, dragOff=[0,0], ghostInfo=null;
 
 /* ═══════════════════════════════════════════
@@ -1039,6 +1073,7 @@ function checkContinue() {
 }
 
 function gameOver() {
+  stopSpeedTimer();
   soundOver();
   document.getElementById('over-score').textContent=score;
   document.getElementById('over-best').textContent=bestScore;
@@ -1049,9 +1084,39 @@ function gameOver() {
 }
 
 /* ═══════════════════════════════════════════
+   SPEED TIMER
+═══════════════════════════════════════════ */
+function startSpeedTimer() {
+  timeLeft = 120;
+  const card = document.getElementById('timer-card');
+  card.classList.remove('hidden','low');
+  updateTimerDisplay();
+  speedTimerInterval = setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft <= 10) card.classList.add('low');
+    if(timeLeft <= 0) { clearInterval(speedTimerInterval); speedTimerInterval=null; gameOver(); }
+  }, 1000);
+}
+
+function stopSpeedTimer() {
+  if(speedTimerInterval){ clearInterval(speedTimerInterval); speedTimerInterval=null; }
+  document.getElementById('timer-card').classList.add('hidden');
+  document.getElementById('timer-card').classList.remove('low');
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft/60);
+  const s = timeLeft%60;
+  document.getElementById('hud-timer').textContent = m+':'+(s<10?'0':'')+s;
+}
+
+/* ═══════════════════════════════════════════
    START / RESTART
 ═══════════════════════════════════════════ */
-function startGame() {
+function startGame(speed=false) {
+  speedMode = speed;
+  stopSpeedTimer();
   grid=Array.from({length:GS},()=>Array(GS).fill(null));
   score=0; linesCleared=0; placementCount=0; ufoCell=null;
   batchColor = COLORS[Math.floor(Math.random()*COLORS.length)];
@@ -1060,6 +1125,7 @@ function startGame() {
   renderGrid();
   newPieces();
   showScreen('screen-game');
+  if(speedMode) startSpeedTimer();
 }
 
 function loadBest() {
@@ -1071,8 +1137,9 @@ function loadBest() {
 /* ═══════════════════════════════════════════
    WIRING
 ═══════════════════════════════════════════ */
-document.getElementById('btn-start').addEventListener('click',()=>{ initAudio(); startGame(); });
-document.getElementById('btn-restart').addEventListener('click',()=>{ initAudio(); startGame(); });
+document.getElementById('btn-start').addEventListener('click',()=>{ initAudio(); startGame(false); });
+document.getElementById('btn-speed').addEventListener('click',()=>{ initAudio(); startGame(true); });
+document.getElementById('btn-restart').addEventListener('click',()=>{ initAudio(); startGame(speedMode); });
 document.getElementById('btn-menu').addEventListener('click',()=>{ loadBest(); showScreen('screen-start'); });
 window.addEventListener('resize',()=>{
   bgCanvas.width=fxCanvas.width=innerWidth;
