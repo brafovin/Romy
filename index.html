@@ -6,16 +6,16 @@
 <title>Stacking Chairs 🪑</title>
 <style>
 :root {
-  --bg: #0d0618;
-  --surface: #1a0d2e;
-  --panel: #221040;
-  --border: #4a1d96;
-  --accent: #7c3aed;
-  --accent2: #a855f7;
-  --gold: #fbbf24;
+  --bg: #0e1210;
+  --surface: #162018;
+  --panel: #1e2e20;
+  --border: #7d3a52;
+  --accent: #e8305a;
+  --accent2: #ff7aaa;
+  --gold: #7dba6a;
   --red: #ef4444;
-  --text: #e9d5ff;
-  --muted: #7c5ea0;
+  --text: #fceef4;
+  --muted: #9e7488;
   --cell-size: 52px;
   --gap: 3px;
 }
@@ -53,7 +53,7 @@ html, body {
 /* ─── Start screen ─── */
 #screen-start {
   gap:28px;
-  background:radial-gradient(ellipse at 50% 40%, #2d1060 0%, #0d0618 70%);
+  background:radial-gradient(ellipse at 50% 40%, #2a1a22 0%, #0e1210 70%);
 }
 
 .game-logo {
@@ -63,7 +63,7 @@ html, body {
   font-size:5rem;
   display:block;
   animation: floatChair 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 24px #a855f7);
+  filter: drop-shadow(0 0 24px #e8305a);
 }
 @keyframes floatChair {
   0%,100% { transform:translateY(0) rotate(-3deg); }
@@ -73,7 +73,7 @@ html, body {
   font-size:3.2rem;
   font-weight:900;
   letter-spacing:3px;
-  background:linear-gradient(135deg,#c084fc,#818cf8,#38bdf8);
+  background:linear-gradient(135deg,#ff7aaa,#e8305a,#7dba6a,#90caf9);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
@@ -116,7 +116,7 @@ html, body {
 .how-to strong { color:var(--text); }
 
 .btn-start {
-  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  background:linear-gradient(135deg,#c01848,#ff7aaa);
   color:#fff;
   border:none;
   padding:16px 56px;
@@ -125,17 +125,17 @@ html, body {
   border-radius:50px;
   cursor:pointer;
   letter-spacing:1px;
-  box-shadow:0 0 40px #7c3aed88;
+  box-shadow:0 0 40px #e8305a88;
   transition:transform .15s, box-shadow .15s;
 }
 .btn-start:hover {
   transform:scale(1.06);
-  box-shadow:0 0 60px #a855f7aa;
+  box-shadow:0 0 60px #ff7aaaaa;
 }
 .btn-start:active { transform:scale(.97); }
 
 .btn-speed {
-  background:linear-gradient(135deg,#c2410c,#f97316);
+  background:linear-gradient(135deg,#2d6e33,#7dba6a);
   color:#fff;
   border:none;
   padding:13px 44px;
@@ -144,10 +144,10 @@ html, body {
   border-radius:50px;
   cursor:pointer;
   letter-spacing:1px;
-  box-shadow:0 0 30px #f9731688;
+  box-shadow:0 0 30px #7dba6a55;
   transition:transform .15s, box-shadow .15s;
 }
-.btn-speed:hover  { transform:scale(1.06); box-shadow:0 0 50px #f97316aa; }
+.btn-speed:hover  { transform:scale(1.06); box-shadow:0 0 50px #7dba6a99; }
 .btn-speed:active { transform:scale(.97); }
 
 /* ─── Game screen ─── */
@@ -192,13 +192,13 @@ html, body {
 }
 @keyframes scoreBump {
   0%   { transform:scale(1); }
-  50%  { transform:scale(1.35); color:#fbbf24; }
+  50%  { transform:scale(1.35); color:#ff7aaa; }
   100% { transform:scale(1); }
 }
 
-#timer-card { border-color:#f97316; }
-#timer-card .lbl { color:#f97316; }
-#timer-card .val { color:#f97316; }
+#timer-card { border-color:#90caf9; }
+#timer-card .lbl { color:#90caf9; }
+#timer-card .val { color:#90caf9; }
 #timer-card.low { animation:timerPulse .6s ease-in-out infinite; border-color:#ef4444; }
 #timer-card.low .val { color:#ef4444; }
 @keyframes timerPulse {
@@ -219,23 +219,23 @@ html, body {
   border:2px solid var(--border);
   border-radius:14px;
   padding:7px;
-  box-shadow:0 0 40px #4a1d9644, inset 0 0 20px #0005;
+  box-shadow:0 0 40px #e8305a22, inset 0 0 20px #0005;
 }
 
 .cell {
   width:var(--cell-size);
   height:var(--cell-size);
-  background:#12082a;
+  background:#141e15;
   border-radius:7px;
-  border:1px solid #2e1650;
+  border:1px solid #2a3a2c;
   display:flex; align-items:center; justify-content:center;
   position:relative;
   transition:background .08s, border-color .08s;
   overflow:hidden;
 }
 .cell.occupied { border-color:transparent; }
-.cell.hi  { background:#3b2070; border-color:var(--accent2); }
-.cell.bad { background:#3b0f0f; border-color:var(--red); }
+.cell.hi  { background:#2a3d1a; border-color:var(--gold); }
+.cell.bad { background:#3b0f1a; border-color:var(--red); }
 .cell.clear-anim {
   animation:cellClear .45s cubic-bezier(.36,0,.66,-.56) forwards;
 }
@@ -290,7 +290,7 @@ html, body {
   transition:transform .2s, background .2s;
   padding:6px;
 }
-.pw:hover { transform:scale(1.1); background:#2d1a50; }
+.pw:hover { transform:scale(1.1); background:#2a3d20; }
 .pw.dragging { opacity:.25; cursor:grabbing; }
 .pw.used { opacity:.1; pointer-events:none; }
 
@@ -387,35 +387,35 @@ html, body {
 
 /* ─── Game Over screen ─── */
 #screen-over {
-  background:rgba(5,2,14,.92);
+  background:rgba(8,10,8,.93);
   gap:24px;
   backdrop-filter:blur(6px);
   z-index:100;
 }
 #screen-over h2 {
   font-size:3rem; font-weight:900;
-  background:linear-gradient(135deg,#ef4444,#f97316);
+  background:linear-gradient(135deg,#e8305a,#ff7aaa);
   -webkit-background-clip:text; background-clip:text;
   -webkit-text-fill-color:transparent;
 }
 
 /* ─── You Win screen ─── */
 #screen-win {
-  background:rgba(5,2,14,.92);
+  background:rgba(8,10,8,.93);
   gap:24px;
   backdrop-filter:blur(6px);
   z-index:100;
 }
 #screen-win h2 {
   font-size:3.4rem; font-weight:900;
-  background:linear-gradient(135deg,#fbbf24,#34d399,#60a5fa,#a78bfa);
+  background:linear-gradient(135deg,#ff7aaa,#e8305a,#7dba6a,#90caf9);
   -webkit-background-clip:text; background-clip:text;
   -webkit-text-fill-color:transparent;
   animation:winPulse 1.4s ease-in-out infinite;
 }
 @keyframes winPulse {
-  0%,100% { filter:brightness(1) drop-shadow(0 0 10px #fbbf2488); }
-  50%      { filter:brightness(1.3) drop-shadow(0 0 30px #fbbf24cc); }
+  0%,100% { filter:brightness(1) drop-shadow(0 0 10px #e8305a88); }
+  50%      { filter:brightness(1.3) drop-shadow(0 0 30px #ff7aaacc); }
 }
 .over-stats {
   display:flex; gap:16px;
@@ -442,16 +442,16 @@ html, body {
 }
 .over-btns { display:flex; gap:12px; }
 .btn-action {
-  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  background:linear-gradient(135deg,#c01848,#ff7aaa);
   color:#fff; border:none;
   padding:14px 36px;
   font-size:1.05rem; font-weight:700;
   border-radius:50px; cursor:pointer;
   letter-spacing:.5px;
-  box-shadow:0 0 30px #7c3aed66;
+  box-shadow:0 0 30px #e8305a55;
   transition:transform .15s, box-shadow .15s;
 }
-.btn-action:hover { transform:scale(1.05); box-shadow:0 0 50px #a855f7aa; }
+.btn-action:hover { transform:scale(1.05); box-shadow:0 0 50px #ff7aaaaa; }
 .btn-action:active { transform:scale(.97); }
 .btn-ghost {
   background:transparent;
@@ -576,14 +576,14 @@ const CELL = 52, GAP = 3, PAD = 7;
 const STEP = CELL + GAP;
 
 const COLORS = [
-  { bg:'#6d28d9', lt:'#a78bfa', name:'lila' },
-  { bg:'#1d4ed8', lt:'#60a5fa', name:'blau' },
-  { bg:'#065f46', lt:'#34d399', name:'grün' },
-  { bg:'#b45309', lt:'#fbbf24', name:'gelb' },
-  { bg:'#9f1239', lt:'#fb7185', name:'rot'  },
-  { bg:'#0e7490', lt:'#22d3ee', name:'cyan' },
-  { bg:'#7c2d12', lt:'#fb923c', name:'orange'},
-  { bg:'#4a1d96', lt:'#c084fc', name:'violett'},
+  { bg:'#b01840', lt:'#ff80aa', name:'erdbeere'  },  // 🍓 strawberry
+  { bg:'#2d6e33', lt:'#86c472', name:'matcha'    },  // 🍵 matcha
+  { bg:'#1565a0', lt:'#90caf9', name:'eis-blau'  },  // 🧊 ice blue
+  { bg:'#880038', lt:'#f48fb1', name:'himbeere'  },  // raspberry
+  { bg:'#1b5e3a', lt:'#a5d6a7', name:'minze'     },  // mint
+  { bg:'#7b1034', lt:'#f06292', name:'kirsche'   },  // cherry
+  { bg:'#0d4a72', lt:'#b3e5fc', name:'eis'       },  // ice
+  { bg:'#3a6e2a', lt:'#c5e1a5', name:'hell-matcha'},  // light matcha
 ];
 
 const SPEED_WIN_SCORE = 1000;
