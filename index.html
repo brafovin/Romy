@@ -691,31 +691,58 @@ function boardIsEmpty() {
   return grid.every(row=>row.every(v=>!v));
 }
 
-// Simulate placing shape at (ar,ac) and check if any row/col becomes full
-function canCompleteALine(shape) {
-  for(let ar=0; ar<GS; ar++) {
-    for(let ac=0; ac<GS; ac++) {
-      if(!canPlace(shape,ar,ac)) continue;
-      const sim = grid.map(row=>[...row]);
-      shape.cells.forEach(([dr,dc])=>{ sim[ar+dr][ac+dc]=1; });
-      for(let r=0;r<GS;r++) if(sim[r].every(v=>v)) return true;
-      for(let c=0;c<GS;c++) if(sim.every(row=>row[c])) return true;
-    }
+// Returns rows/cols sorted by how full they are (most filled first)
+function getTargets() {
+  const t=[];
+  for(let r=0;r<GS;r++){
+    const filled=grid[r].filter(v=>v).length;
+    if(filled<GS) t.push({type:'row',idx:r,filled});
+  }
+  for(let c=0;c<GS;c++){
+    const filled=grid.filter(row=>row[c]).length;
+    if(filled<GS) t.push({type:'col',idx:c,filled});
+  }
+  return t.sort((a,b)=>b.filled-a.filled);
+}
+
+// Check if placing this shape anywhere would complete a specific row or col
+function shapeCompletesTarget(shape, target) {
+  for(let ar=0;ar<GS;ar++) for(let ac=0;ac<GS;ac++){
+    if(!canPlace(shape,ar,ac)) continue;
+    const sim=grid.map(row=>[...row]);
+    shape.cells.forEach(([dr,dc])=>{sim[ar+dr][ac+dc]=1;});
+    if(target.type==='row' && sim[target.idx].every(v=>v)) return true;
+    if(target.type==='col' && sim.every(row=>row[target.idx])) return true;
   }
   return false;
 }
 
-function smartPiece() {
-  // Try to find a shape that could complete a row/col somewhere on the current board
-  for(let i=0; i<40; i++) {
-    const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-    if(canCompleteALine(shape)) return {shape, color:batchColor};
-  }
-  // Fallback: any shape with current batch color
-  return {shape: SHAPES[Math.floor(Math.random()*SHAPES.length)], color:batchColor};
-}
+function newPieces() {
+  const usedShapes=new Set();
+  const targets=getTargets();
+  // shuffle shapes so we don't always pick the same ones
+  const shuffled=[...SHAPES].sort(()=>Math.random()-.5);
 
-function buildTray() {
+  pieces=[0,1,2].map(()=>{
+    // Find any unused shape that completes one of the targets (most-full first)
+    for(const shape of shuffled){
+      if(usedShapes.has(shape.id)) continue;
+      for(const target of targets){
+        if(shapeCompletesTarget(shape,target)){
+          usedShapes.add(shape.id);
+          return {shape,color:batchColor};
+        }
+      }
+    }
+    // Fallback: any unused shape
+    for(const shape of shuffled){
+      if(!usedShapes.has(shape.id)){usedShapes.add(shape.id);return{shape,color:batchColor};}
+    }
+    return {shape:shuffled[0],color:batchColor};
+  });
+
+  buildTray();
+}
   const tray=document.getElementById('tray');
   tray.innerHTML='';
   pieces.forEach((p,i)=>{
@@ -748,27 +775,6 @@ function buildTray() {
     }
     tray.appendChild(w);
   });
-}
-
-function newPieces() {
-  const usedShapes = new Set();
-  function smartUnique() {
-    // try to find a shape that completes a line AND hasn't been used yet
-    for(let i=0; i<60; i++) {
-      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-      if(usedShapes.has(shape.id)) continue;
-      if(canCompleteALine(shape)) { usedShapes.add(shape.id); return {shape,color:batchColor}; }
-    }
-    // fallback: any unused shape
-    for(let i=0; i<60; i++) {
-      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-      if(!usedShapes.has(shape.id)) { usedShapes.add(shape.id); return {shape,color:batchColor}; }
-    }
-    // last resort: ignore uniqueness
-    return smartPiece();
-  }
-  pieces=[smartUnique(),smartUnique(),smartUnique()];
-  buildTray();
 }
 
 /* ═══════════════════════════════════════════
