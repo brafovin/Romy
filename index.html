@@ -833,7 +833,7 @@ function placePiece(idx,ar,ac) {
   p.shape.cells.forEach(([dr,dc])=>{
     grid[ar+dr][ac+dc]={color:p.color, shapeId:p.shape.id};
   });
-  pieces[idx]=null;
+  pieces[idx]=randPiece();   // immediately replace with a fresh piece
   soundPlace();
   renderGrid();
   buildTray();
@@ -884,7 +884,7 @@ function checkClears() {
     updateHUD();
     showScorePop(pts, cellEls[0]);
     renderGrid();
-    if(pieces.every(p=>!p)) newPieces(); else checkContinue();
+    checkContinue();
   },450);
 }
 
@@ -913,13 +913,12 @@ function updateHUD() {
   document.getElementById('hud-lines').textContent=linesCleared;
 }
 
+function gridFull() {
+  return grid.every(row=>row.every(v=>v!==null));
+}
+
 function checkContinue() {
-  const ok=pieces.some(p=>{
-    if(!p) return false;
-    for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(canPlace(p.shape,r,c)) return true;
-    return false;
-  });
-  if(!ok) setTimeout(gameOver,400);
+  if(gridFull()) setTimeout(gameOver,400);
 }
 
 function gameOver() {
