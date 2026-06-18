@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Stuhl Blast 🪑</title>
+<title>Stacking Chairs 🪑</title>
 <style>
 :root {
   --bg: #0d0618;
@@ -396,33 +396,33 @@ html, body {
 <div class="screen" id="screen-start">
   <div class="game-logo">
     <span class="emoji">🪑</span>
-    <h1>STUHL BLAST</h1>
-    <p class="tagline">Stapel Stühle — räume Reihen!</p>
+    <h1>STACKING CHAIRS</h1>
+    <p class="tagline">Stack chairs — clear the rows!</p>
   </div>
-  <div class="best-display">🏆 Bester Score: <span class="val" id="start-best">0</span></div>
+  <div class="best-display">🏆 Best Score: <span class="val" id="start-best">0</span></div>
   <div class="how-to">
-    <strong>So geht's:</strong><br>
-    Ziehe Stuhlgruppen auf das Raster.<br>
-    Eine volle Reihe oder Spalte verschwindet nur,<br>
-    wenn alle Stühle <strong>dieselbe Farbe</strong><br>
-    oder <strong>denselben Typ</strong> haben. 🪑
+    <strong>How to play:</strong><br>
+    Drag chair groups onto the grid.<br>
+    A full row or column only clears<br>
+    when all chairs share the <strong>same color</strong><br>
+    or the <strong>same type</strong>. 🪑
   </div>
-  <button class="btn-start" id="btn-start">Spiel starten</button>
+  <button class="btn-start" id="btn-start">Start Game</button>
 </div>
 
 <!-- ══ GAME SCREEN ══ -->
 <div class="screen hidden" id="screen-game">
   <div class="hud">
     <div class="score-card">
-      <div class="lbl">Punkte</div>
+      <div class="lbl">Score</div>
       <div class="val" id="hud-score">0</div>
     </div>
     <div class="score-card">
-      <div class="lbl">Rekord</div>
+      <div class="lbl">Best</div>
       <div class="val" id="hud-best">0</div>
     </div>
     <div class="score-card">
-      <div class="lbl">Reihen</div>
+      <div class="lbl">Lines</div>
       <div class="val" id="hud-lines">0</div>
     </div>
   </div>
@@ -437,22 +437,22 @@ html, body {
   <h2>Game Over 🪑</h2>
   <div class="over-stats">
     <div class="over-stat">
-      <div class="lbl">Punkte</div>
+      <div class="lbl">Score</div>
       <div class="val" id="over-score">0</div>
     </div>
     <div class="over-stat">
-      <div class="lbl">Rekord</div>
+      <div class="lbl">Best</div>
       <div class="val gold" id="over-best">0</div>
     </div>
     <div class="over-stat">
-      <div class="lbl">Reihen</div>
+      <div class="lbl">Lines</div>
       <div class="val" id="over-lines">0</div>
     </div>
   </div>
-  <div class="new-best hidden" id="new-best-msg">🏆 Neuer Rekord!</div>
+  <div class="new-best hidden" id="new-best-msg">🏆 New Record!</div>
   <div class="over-btns">
-    <button class="btn-action" id="btn-restart">Nochmal</button>
-    <button class="btn-ghost"  id="btn-menu">Menü</button>
+    <button class="btn-action" id="btn-restart">Play Again</button>
+    <button class="btn-ghost"  id="btn-menu">Menu</button>
   </div>
 </div>
 
@@ -568,34 +568,60 @@ function drawBg(ts) {
 }
 
 /* ═══════════════════════════════════════════
-   PARTICLES
+   CONFETTI CANNON
 ═══════════════════════════════════════════ */
-let particles=[];
-function spawnParticles(cellEls, color) {
-  cellEls.forEach(el=>{
-    const r=el.getBoundingClientRect();
-    const cx=r.left+r.width/2, cy=r.top+r.height/2;
-    for(let i=0;i<8;i++) {
-      const ang=Math.random()*Math.PI*2;
-      const spd=2+Math.random()*4;
-      particles.push({x:cx,y:cy,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
-        r:3+Math.random()*4,life:1,decay:.025+Math.random()*.015,color:color.lt});
-    }
-  });
+const CONFETTI_COLORS = [
+  '#f87171','#fb923c','#fbbf24','#34d399',
+  '#60a5fa','#a78bfa','#f472b6','#fff',
+  '#38bdf8','#4ade80','#facc15','#e879f9',
+];
+let confetti=[];
+
+function fireConfettiCannon(x, y, dirX) {
+  /* dirX: -1 = shoots left-to-right, +1 = right-to-left */
+  for(let i=0;i<55;i++) {
+    const spread = (Math.random()-.5) * 1.8;   // vertical spread
+    const power  = 6 + Math.random() * 10;
+    confetti.push({
+      x, y,
+      vx: dirX * power * (.6 + Math.random()*.4),
+      vy: -power * (.2 + Math.random()*.6) + spread * 2,
+      w:  5 + Math.random()*7,
+      h:  3 + Math.random()*5,
+      rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-.5)*.35,
+      color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
+      life: 1,
+      decay: .008 + Math.random()*.006,
+    });
+  }
 }
+
+function shootConfettiAtGrid() {
+  const rect = gridEl.getBoundingClientRect();
+  const midY = rect.top + rect.height * .35;
+  fireConfettiCannon(rect.left  + 10, midY, +1);  // left cannon → right
+  fireConfettiCannon(rect.right - 10, midY, -1);  // right cannon → left
+}
+
 function tickParticles() {
   fxCtx.clearRect(0,0,fxCanvas.width,fxCanvas.height);
-  particles=particles.filter(p=>p.life>0);
-  particles.forEach(p=>{
-    p.x+=p.vx; p.y+=p.vy; p.vy+=.12;
-    p.vx*=.97; p.life-=p.decay;
-    fxCtx.globalAlpha=Math.max(0,p.life);
-    fxCtx.fillStyle=p.color;
-    fxCtx.beginPath();
-    fxCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    fxCtx.fill();
+  confetti = confetti.filter(p=>p.life>0);
+  confetti.forEach(p=>{
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += .28;          // gravity
+    p.vx *= .98;          // air resistance
+    p.rot+= p.vr;
+    p.life -= p.decay;
+    fxCtx.save();
+    fxCtx.globalAlpha = Math.max(0, p.life);
+    fxCtx.fillStyle   = p.color;
+    fxCtx.translate(p.x, p.y);
+    fxCtx.rotate(p.rot);
+    fxCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    fxCtx.restore();
   });
-  fxCtx.globalAlpha=1;
   requestAnimationFrame(tickParticles);
 }
 
@@ -837,17 +863,13 @@ function checkClears() {
   rows.forEach(r=>{ for(let c=0;c<GS;c++) toKill.add(`${r},${c}`); });
   cols.forEach(c=>{ for(let r=0;r<GS;r++) toKill.add(`${r},${c}`); });
 
-  // Gather color of first cleared cell for particles
-  const firstKey=[...toKill][0].split(',').map(Number);
-  const clearColor=grid[firstKey[0]][firstKey[1]].color;
-
   const cellEls=[];
   toKill.forEach(k=>{
     const [r,c]=k.split(',').map(Number);
     const el=cell(r,c);
     if(el){ el.classList.add('clear-anim'); cellEls.push(el); }
   });
-  spawnParticles(cellEls, clearColor);
+  shootConfettiAtGrid();
 
   const n=rows.length+cols.length;
   if(n>1) { soundCombo(); showCombo(n); }
