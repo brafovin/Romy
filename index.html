@@ -1086,12 +1086,27 @@ function checkContinue() {
   }
 }
 
+function anyPieceFits() {
+  return pieces.some(p=>{
+    if(!p) return false;
+    for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(canPlace(p.shape,r,c)) return true;
+    return false;
+  });
+}
+
 function emergencyClear() {
-  const rows = Array.from({length:GS},(_,r)=>({r, n:grid[r].filter(v=>v).length}));
-  rows.sort((a,b)=>b.n-a.n);
-  rows.slice(0,2).forEach(({r})=>{ for(let c=0;c<GS;c++) grid[r][c]=null; });
+  // Clear the 4 most filled rows to make space
+  const rowData = Array.from({length:GS},(_,r)=>({r, n:grid[r].filter(v=>v).length}));
+  rowData.sort((a,b)=>b.n-a.n);
+  rowData.slice(0,4).forEach(({r})=>{ for(let c=0;c<GS;c++) grid[r][c]=null; });
   renderGrid();
   newPieces();
+  // If pieces still can't fit, wipe the bottom half entirely
+  if(!anyPieceFits()) {
+    for(let r=Math.floor(GS/2);r<GS;r++) for(let c=0;c<GS;c++) grid[r][c]=null;
+    renderGrid();
+    newPieces();
+  }
 }
 
 function gameOver() {
