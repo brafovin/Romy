@@ -403,9 +403,8 @@ html, body {
   <div class="how-to">
     <strong>So geht's:</strong><br>
     Ziehe Stuhlgruppen auf das Raster.<br>
-    Eine volle Reihe oder Spalte verschwindet nur,<br>
-    wenn alle Stühle <strong>dieselbe Farbe</strong><br>
-    oder <strong>denselben Typ</strong> haben. 🪑
+    Wenn eine Reihe oder Spalte<br>
+    <strong>komplett voll</strong> ist, verschwindet sie. 🪑
   </div>
   <button class="btn-start" id="btn-start">Spiel starten</button>
 </div>
@@ -841,16 +840,10 @@ function placePiece(idx,ar,ac) {
 }
 
 function rowClears(r) {
-  const row=grid[r];
-  if(!row.every(v=>v)) return false;
-  const col0=row[0].color.bg, sh0=row[0].shapeId;
-  return row.every(v=>v.color.bg===col0) || row.every(v=>v.shapeId===sh0);
+  return grid[r].every(v=>v!==null);
 }
 function colClears(c) {
-  const col=grid.map(row=>row[c]);
-  if(!col.every(v=>v)) return false;
-  const col0=col[0].color.bg, sh0=col[0].shapeId;
-  return col.every(v=>v.color.bg===col0) || col.every(v=>v.shapeId===sh0);
+  return grid.every(row=>row[c]!==null);
 }
 
 function checkClears() {
