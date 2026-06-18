@@ -1,1282 +1,1309 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Stacking Chairs 🪑</title>
-<style>
-:root {
-  --bg: #0e1210;
-  --surface: #162018;
-  --panel: #1e2e20;
-  --border: #7d3a52;
-  --accent: #e8305a;
-  --accent2: #ff7aaa;
-  --gold: #7dba6a;
-  --red: #ef4444;
-  --text: #fceef4;
-  --muted: #9e7488;
-  --cell-size: 52px;
-  --gap: 3px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>matsh-it — Premium Matcha</title>
+  <style>
+    :root {
+      --green:       #3d7a2a;
+      --green-light: #6ab847;
+      --green-deep:  #234d15;
+      --green-pale:  #e8f5dd;
+      --green-ultra: #f3faea;
+      --pink:        #f472b6;
+      --pink-light:  #fbcfe8;
+      --pink-deep:   #db2777;
+      --cream:       #fffdf8;
+      --cream-2:     #f5f0e8;
+      --gold:        #c9a84c;
+      --dark:        #111a0e;
+      --text:        #1a2416;
+      --muted:       #6b7c64;
+    }
 
-* { margin:0; padding:0; box-sizing:border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
-html, body {
-  width:100%; height:100%;
-  overflow:hidden;
-  font-family:'Segoe UI',system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  user-select:none;
-  -webkit-user-select:none;
-}
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-/* ─── Canvas background ─── */
-#bg-canvas {
-  position:fixed; inset:0;
-  pointer-events:none;
-  z-index:0;
-}
+    /* ═══ NAV ═══ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      padding: 22px 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.35s;
+    }
 
-/* ─── Screens ─── */
-.screen {
-  position:fixed; inset:0;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  z-index:10;
-}
-.screen.hidden {
-  display:none;
-}
+    nav.scrolled {
+      background: rgba(255, 253, 248, 0.96);
+      backdrop-filter: blur(14px);
+      padding: 14px 64px;
+      border-bottom: 1px solid #e8f0e0;
+      box-shadow: 0 2px 24px rgba(61, 122, 42, 0.07);
+    }
 
-/* ─── Start screen ─── */
-#screen-start {
-  gap:28px;
-  background:radial-gradient(ellipse at 50% 40%, #2a1a22 0%, #0e1210 70%);
-}
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.04em;
+      transition: color 0.35s;
+    }
 
-.game-logo {
-  text-align:center;
-}
-.game-logo .emoji {
-  font-size:5rem;
-  display:block;
-  animation: floatChair 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 24px #e8305a);
-}
-@keyframes floatChair {
-  0%,100% { transform:translateY(0) rotate(-3deg); }
-  50%      { transform:translateY(-14px) rotate(3deg); }
-}
-.game-logo h1 {
-  font-size:3.2rem;
-  font-weight:900;
-  letter-spacing:3px;
-  background:linear-gradient(135deg,#ff7aaa,#e8305a,#7dba6a,#90caf9);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  text-shadow:none;
-  margin-top:8px;
-}
-.game-logo .tagline {
-  color:var(--muted);
-  font-size:.95rem;
-  margin-top:4px;
-  letter-spacing:1px;
-}
+    nav.scrolled .logo { color: var(--dark); }
+    .logo span { color: var(--pink); }
 
-.best-display {
-  display:flex; align-items:center; gap:8px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:50px;
-  padding:8px 24px;
-  font-size:.85rem;
-  color:var(--muted);
-}
-.best-display .val {
-  color:var(--gold);
-  font-weight:700;
-  font-size:1rem;
-}
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 38px;
+      list-style: none;
+    }
 
-.how-to {
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:18px 28px;
-  max-width:360px;
-  text-align:center;
-  line-height:1.7;
-  font-size:.88rem;
-  color:var(--muted);
-}
-.how-to strong { color:var(--text); }
+    .nav-links a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.65);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
 
-.btn-start {
-  background:linear-gradient(135deg,#c01848,#ff7aaa);
-  color:#fff;
-  border:none;
-  padding:16px 56px;
-  font-size:1.25rem;
-  font-weight:700;
-  border-radius:50px;
-  cursor:pointer;
-  letter-spacing:1px;
-  box-shadow:0 0 40px #e8305a88;
-  transition:transform .15s, box-shadow .15s;
-}
-.btn-start:hover {
-  transform:scale(1.06);
-  box-shadow:0 0 60px #ff7aaaaa;
-}
-.btn-start:active { transform:scale(.97); }
+    nav.scrolled .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--pink) !important; }
 
-.btn-speed {
-  background:linear-gradient(135deg,#2d6e33,#7dba6a);
-  color:#fff;
-  border:none;
-  padding:13px 44px;
-  font-size:1.05rem;
-  font-weight:700;
-  border-radius:50px;
-  cursor:pointer;
-  letter-spacing:1px;
-  box-shadow:0 0 30px #7dba6a55;
-  transition:transform .15s, box-shadow .15s;
-}
-.btn-speed:hover  { transform:scale(1.06); box-shadow:0 0 50px #7dba6a99; }
-.btn-speed:active { transform:scale(.97); }
+    .nav-cta {
+      background: var(--pink) !important;
+      color: #fff !important;
+      padding: 9px 24px;
+      border-radius: 100px;
+      font-weight: 700 !important;
+    }
 
-/* ─── Game screen ─── */
-#screen-game {
-  flex-direction:column;
-  gap:12px;
-  justify-content:center;
-  padding:12px;
-}
+    .nav-cta:hover { background: var(--pink-deep) !important; }
 
-.hud {
-  display:flex;
-  gap:12px;
-  align-items:center;
-  width:100%;
-  max-width:476px;
-}
+    /* ═══ HERO ═══ */
+    .hero {
+      min-height: 100vh;
+      background: var(--dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 130px 64px 80px;
+    }
 
-.score-card {
-  flex:1;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:8px 12px;
-  text-align:center;
-}
-.score-card .lbl {
-  font-size:.6rem;
-  text-transform:uppercase;
-  letter-spacing:1.5px;
-  color:var(--muted);
-}
-.score-card .val {
-  font-size:1.4rem;
-  font-weight:800;
-  color:var(--accent2);
-  line-height:1.1;
-  transition:transform .15s;
-}
-.score-card .val.bump {
-  animation:scoreBump .25s ease;
-}
-@keyframes scoreBump {
-  0%   { transform:scale(1); }
-  50%  { transform:scale(1.35); color:#ff7aaa; }
-  100% { transform:scale(1); }
-}
+    /* Matcha texture circles */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -180px; right: -180px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(106,184,71,0.22) 0%, transparent 70%);
+      border-radius: 50%;
+    }
 
-#timer-card { border-color:#90caf9; }
-#timer-card .lbl { color:#90caf9; }
-#timer-card .val { color:#90caf9; }
-#timer-card.low { animation:timerPulse .6s ease-in-out infinite; border-color:#ef4444; }
-#timer-card.low .val { color:#ef4444; }
-@keyframes timerPulse {
-  0%,100% { box-shadow:0 0 0 0 #ef444440; }
-  50%     { box-shadow:0 0 0 8px #ef444400; }
-}
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -120px; left: -100px;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(244,114,182,0.14) 0%, transparent 70%);
+      border-radius: 50%;
+    }
 
-#grid-wrap {
-  position:relative;
-}
+    .hero-mid-glow {
+      position: absolute;
+      top: 50%; left: 55%;
+      transform: translate(-50%,-50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(61,122,42,0.18) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
 
-#grid {
-  display:grid;
-  grid-template-columns:repeat(8, var(--cell-size));
-  grid-template-rows:   repeat(8, var(--cell-size));
-  gap:var(--gap);
-  background:var(--panel);
-  border:2px solid var(--border);
-  border-radius:14px;
-  padding:7px;
-  box-shadow:0 0 40px #e8305a22, inset 0 0 20px #0005;
-}
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 820px;
+    }
 
-.cell {
-  width:var(--cell-size);
-  height:var(--cell-size);
-  background:#141e15;
-  border-radius:7px;
-  border:1px solid #2a3a2c;
-  display:flex; align-items:center; justify-content:center;
-  position:relative;
-  transition:background .08s, border-color .08s;
-  overflow:hidden;
-}
-.cell.occupied { border-color:transparent; }
-.cell.hi  { background:#2a3d1a; border-color:var(--gold); }
-.cell.bad { background:#3b0f1a; border-color:var(--red); }
-.cell.clear-anim {
-  animation:cellClear .45s cubic-bezier(.36,0,.66,-.56) forwards;
-}
-@keyframes cellClear {
-  0%   { transform:scale(1); opacity:1; }
-  40%  { transform:scale(1.25) rotate(12deg); opacity:.8; }
-  100% { transform:scale(0) rotate(30deg); opacity:0; }
-}
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--green-light);
+      margin-bottom: 28px;
+      padding: 6px 18px;
+      border: 1px solid rgba(106,184,71,0.28);
+      border-radius: 100px;
+    }
 
-/* Chair drawn in CSS */
-.chair {
-  display:flex; flex-direction:column; align-items:center;
-  width:38px; height:38px; justify-content:center; gap:1px;
-}
-.c-back {
-  width:26px; height:10px;
-  border-radius:4px 4px 1px 1px;
-  border-bottom:2px solid rgba(0,0,0,.25);
-}
-.c-seat {
-  width:30px; height:13px;
-  border-radius:3px;
-  border-top:2px solid rgba(255,255,255,.15);
-  border-bottom:2px solid rgba(0,0,0,.25);
-}
-.c-legs {
-  display:flex; gap:12px;
-}
-.c-leg {
-  width:5px; height:7px;
-  border-radius:0 0 3px 3px;
-}
+    .eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green-light);
+      border-radius: 50%;
+    }
 
-/* Piece tray */
-#tray {
-  display:flex; gap:8px;
-  background:var(--panel);
-  border:2px solid var(--border);
-  border-radius:14px;
-  padding:12px 16px;
-  width:100%; max-width:476px;
-  justify-content:space-around;
-  align-items:center;
-  min-height:110px;
-}
+    .hero h1 {
+      font-size: clamp(5.5rem, 14vw, 12.5rem);
+      font-weight: 900;
+      line-height: 0.88;
+      letter-spacing: -0.06em;
+      color: #fff;
+      margin-bottom: 32px;
+    }
 
-.pw {
-  display:flex; align-items:center; justify-content:center;
-  min-width:130px; min-height:86px;
-  cursor:grab;
-  border-radius:10px;
-  transition:transform .2s, background .2s;
-  padding:6px;
-}
-.pw:hover { transform:scale(1.1); background:#2a3d20; }
-.pw.dragging { opacity:.25; cursor:grabbing; }
-.pw.used { opacity:.1; pointer-events:none; }
+    .hero h1 .accent { color: var(--pink); }
 
-.pgrid { display:grid; gap:2px; }
-.pcell {
-  width:26px; height:26px;
-  border-radius:5px;
-  border:1px solid rgba(0,0,0,.2);
-  display:flex; align-items:center; justify-content:center;
-}
+    .hero-sub {
+      font-size: clamp(1rem, 1.7vw, 1.28rem);
+      color: rgba(255,255,255,0.48);
+      max-width: 460px;
+      line-height: 1.7;
+      margin-bottom: 46px;
+    }
 
-/* UFO */
-.cell.ufo-blocked {
-  box-shadow:0 0 16px #22d3eeaa, inset 0 0 10px #22d3ee33 !important;
-  border-color:#22d3ee !important;
-}
-.ufo-overlay {
-  position:absolute;
-  top:-12px; left:50%;
-  transform:translateX(-50%);
-  font-size:26px;
-  z-index:20;
-  pointer-events:none;
-  animation:ufoFloat 1.8s ease-in-out infinite;
-  filter:drop-shadow(0 0 10px #22d3ee);
-}
-.ufo-timer {
-  position:absolute;
-  bottom:2px; right:4px;
-  font-size:10px; font-weight:900;
-  color:#22d3ee;
-  z-index:21;
-  pointer-events:none;
-  text-shadow:0 0 6px #22d3ee;
-}
-@keyframes ufoFloat {
-  0%,100% { transform:translateX(-50%) translateY(0) rotate(-4deg); }
-  50%      { transform:translateX(-50%) translateY(-7px) rotate(4deg); }
-}
-@keyframes ufoLand {
-  0%   { transform:translateX(-50%) translateY(-60px) scale(.5); opacity:0; }
-  60%  { transform:translateX(-50%) translateY(4px) scale(1.1); opacity:1; }
-  100% { transform:translateX(-50%) translateY(0) scale(1); opacity:1; }
-}
-.ufo-overlay.landing { animation:ufoLand .6s cubic-bezier(.22,1,.36,1) forwards; }
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
 
-/* ─── Flood fill animation ─── */
-.cell.flood-pop {
-  animation:floodPop .35s cubic-bezier(.22,1,.36,1) forwards;
-}
-@keyframes floodPop {
-  0%   { transform:scale(0) rotate(-20deg); opacity:0; }
-  65%  { transform:scale(1.18) rotate(6deg); opacity:1; }
-  100% { transform:scale(1) rotate(0deg); opacity:1; }
-}
+    .btn {
+      display: inline-block;
+      padding: 15px 40px;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.22s;
+      cursor: pointer;
+      border: none;
+    }
 
-/* Drag ghost */
-#ghost {
-  position:fixed; pointer-events:none;
-  z-index:1000; display:none;
-  gap:var(--gap);
-}
+    .btn-pink {
+      background: var(--pink);
+      color: #fff;
+    }
 
-/* Floating score popup */
-.score-pop {
-  position:absolute;
-  font-size:1.1rem;
-  font-weight:800;
-  color:var(--gold);
-  pointer-events:none;
-  z-index:50;
-  text-shadow:0 0 12px #f59e0b;
-  animation:popUp .8s ease-out forwards;
-}
-@keyframes popUp {
-  0%   { opacity:1; transform:translateY(0) scale(.8); }
-  60%  { opacity:1; transform:translateY(-40px) scale(1.1); }
-  100% { opacity:0; transform:translateY(-70px) scale(1); }
-}
+    .btn-pink:hover {
+      background: var(--pink-deep);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(244,114,182,0.4);
+    }
 
-/* Combo banner */
-#combo-banner {
-  position:fixed; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  font-size:2.6rem; font-weight:900;
-  pointer-events:none; opacity:0; z-index:200;
-  text-align:center;
-  filter:drop-shadow(0 0 20px #fbbf24);
-}
-#combo-banner.pop {
-  animation:comboPop .9s cubic-bezier(.22,1,.36,1) forwards;
-}
-@keyframes comboPop {
-  0%   { opacity:1; transform:translate(-50%,-50%) scale(.4); }
-  40%  { opacity:1; transform:translate(-50%,-60%) scale(1.15); }
-  100% { opacity:0; transform:translate(-50%,-80%) scale(.9); }
-}
+    .btn-outline {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.22);
+    }
 
-/* Particle canvas */
-#fx-canvas {
-  position:fixed; inset:0;
-  pointer-events:none; z-index:30;
-}
+    .btn-outline:hover {
+      border-color: rgba(255,255,255,0.6);
+      color: #fff;
+      transform: translateY(-3px);
+    }
 
-/* ─── Game Over screen ─── */
-#screen-over {
-  background:rgba(8,10,8,.93);
-  gap:24px;
-  backdrop-filter:blur(6px);
-  z-index:100;
-}
-#screen-over h2 {
-  font-size:3rem; font-weight:900;
-  background:linear-gradient(135deg,#e8305a,#ff7aaa);
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 36px;
+      left: 64px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: rgba(255,255,255,0.25);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      z-index: 2;
+    }
 
-/* ─── You Win screen ─── */
-#screen-win {
-  background:rgba(8,10,8,.93);
-  gap:24px;
-  backdrop-filter:blur(6px);
-  z-index:100;
-}
-#screen-win h2 {
-  font-size:3.4rem; font-weight:900;
-  background:linear-gradient(135deg,#ff7aaa,#e8305a,#7dba6a,#90caf9);
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:winPulse 1.4s ease-in-out infinite;
-}
-@keyframes winPulse {
-  0%,100% { filter:brightness(1) drop-shadow(0 0 10px #e8305a88); }
-  50%      { filter:brightness(1.3) drop-shadow(0 0 30px #ff7aaacc); }
-}
-.over-stats {
-  display:flex; gap:16px;
-}
-.over-stat {
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px 28px;
-  text-align:center;
-}
-.over-stat .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
-.over-stat .val { font-size:2rem; font-weight:800; color:var(--accent2); }
-.over-stat .val.gold { color:var(--gold); }
-.new-best {
-  color:var(--gold);
-  font-size:.9rem;
-  font-weight:700;
-  letter-spacing:1px;
-  animation:pulse 1s ease infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity:1; } 50% { opacity:.5; }
-}
-.over-btns { display:flex; gap:12px; }
-.btn-action {
-  background:linear-gradient(135deg,#c01848,#ff7aaa);
-  color:#fff; border:none;
-  padding:14px 36px;
-  font-size:1.05rem; font-weight:700;
-  border-radius:50px; cursor:pointer;
-  letter-spacing:.5px;
-  box-shadow:0 0 30px #e8305a55;
-  transition:transform .15s, box-shadow .15s;
-}
-.btn-action:hover { transform:scale(1.05); box-shadow:0 0 50px #ff7aaaaa; }
-.btn-action:active { transform:scale(.97); }
-.btn-ghost {
-  background:transparent;
-  border:2px solid var(--border);
-  color:var(--muted);
-  padding:14px 36px;
-  font-size:1.05rem; font-weight:700;
-  border-radius:50px; cursor:pointer;
-  transition:border-color .2s, color .2s;
-}
-.btn-ghost:hover { border-color:var(--accent2); color:var(--text); }
-</style>
+    .scroll-line { width: 44px; height: 1px; background: rgba(255,255,255,0.2); }
+
+    /* Floating stat cards */
+    .hero-floats {
+      position: absolute;
+      right: 64px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 2;
+    }
+
+    .float-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      backdrop-filter: blur(14px);
+      border-radius: 18px;
+      padding: 20px 26px;
+      text-align: center;
+      min-width: 165px;
+    }
+
+    .float-card .fn {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--pink);
+      display: block;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .float-card .fl {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.38);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      line-height: 1.5;
+    }
+
+    /* ═══ MARQUEE ═══ */
+    .marquee-bar {
+      background: linear-gradient(90deg, var(--green-deep), var(--green));
+      padding: 15px 0;
+      overflow: hidden;
+    }
+
+    .marquee-track {
+      display: flex;
+      white-space: nowrap;
+      animation: scroll 24s linear infinite;
+    }
+
+    .m-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 26px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      flex-shrink: 0;
+    }
+
+    .m-sep {
+      width: 5px; height: 5px;
+      background: var(--pink);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ═══ ABOUT ═══ */
+    .about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      padding: 130px 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .about-img {
+      position: relative;
+    }
+
+    .about-card-vis {
+      border-radius: 30px;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: linear-gradient(155deg, var(--green-deep) 0%, var(--green) 50%, #8fc858 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 44px;
+      position: relative;
+    }
+
+    .leaf-bg {
+      position: absolute;
+      top: 16px; right: 16px;
+      font-size: 10rem;
+      opacity: 0.09;
+      pointer-events: none;
+    }
+
+    .card-chip {
+      display: inline-block;
+      padding: 5px 14px;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .card-quote {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .card-quote em {
+      font-style: italic;
+      color: var(--pink-light);
+    }
+
+    .gold-pip {
+      position: absolute;
+      top: -18px; right: -18px;
+      background: var(--pink);
+      color: #fff;
+      border-radius: 50%;
+      width: 110px; height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      box-shadow: 0 10px 32px rgba(244,114,182,0.45);
+      text-align: center;
+    }
+
+    .gold-pip .pn { font-size: 1.9rem; line-height: 1; }
+    .gold-pip .pl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; }
+
+    .section-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+    }
+
+    .about-text h2 {
+      font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+      margin-bottom: 22px;
+    }
+
+    .about-text p {
+      font-size: 1.02rem;
+      line-height: 1.8;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 38px;
+    }
+
+    .tag {
+      padding: 7px 17px;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .tag-green { background: var(--green-pale); color: var(--green-deep); }
+    .tag-pink  { background: var(--pink-light); color: var(--pink-deep); }
+
+    /* ═══ PRODUCTS ═══ */
+    .products {
+      background: var(--dark);
+      padding: 130px 64px;
+    }
+
+    .products-inner { max-width: 1400px; margin: 0 auto; }
+
+    .products-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 52px;
+      gap: 30px;
+    }
+
+    .products-hdr h2 {
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .products-hdr h2 span { color: var(--pink); }
+
+    .products-hdr p {
+      color: rgba(255,255,255,0.35);
+      max-width: 260px;
+      line-height: 1.65;
+      font-size: 0.92rem;
+      text-align: right;
+    }
+
+    /* 5-product grid: big card top-left spanning 2 rows, then 2 columns on the right */
+    .products-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 18px;
+    }
+
+    .p-card {
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .p-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 28px 60px rgba(0,0,0,0.45);
+    }
+
+    /* Featured card: spans 2 rows, 1 column */
+    .p-card.big {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+
+    .p-body {
+      width: 100%;
+      height: 100%;
+      min-height: 270px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 30px;
+      position: relative;
+    }
+
+    .p-card.big .p-body { min-height: 580px; }
+
+    /* Card color themes */
+    .c-matcha-tin    { background: linear-gradient(145deg, #1a3b0f 0%, #356624 50%, #5a9940 100%); }
+    .c-stanley       { background: linear-gradient(145deg, #1a1a0a 0%, #2d4d1a 40%, #5a7a30 70%, #f28ab0 100%); }
+    .c-glass         { background: linear-gradient(145deg, #0f1f0a 0%, #1e4015 50%, #4a8030 100%); }
+    .c-straws        { background: linear-gradient(145deg, #1f0a14 0%, #4d1a32 40%, #7a3055 65%, #b86090 100%); }
+    .c-tumbler       { background: linear-gradient(145deg, #3d0a1f 0%, #7a1a40 45%, #e060a0 100%); }
+
+    .p-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -58%);
+      font-size: 5.5rem;
+      filter: drop-shadow(0 16px 30px rgba(0,0,0,0.4));
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .p-card.big .p-icon { font-size: 9rem; }
+
+    .p-chip {
+      display: inline-block;
+      padding: 3px 11px;
+      background: rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.62);
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .p-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 5px;
+      letter-spacing: -0.01em;
+    }
+
+    .p-card.big .p-name { font-size: 1.95rem; }
+
+    .p-desc {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.44);
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+
+    .p-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .p-price {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--pink);
+    }
+
+    .p-card.big .p-price { font-size: 1.85rem; }
+
+    .cart-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--pink);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .cart-btn:hover { background: var(--pink-deep); transform: scale(1.12); }
+
+    /* ═══ WHY ═══ */
+    .why {
+      padding: 130px 64px;
+    }
+
+    .why-inner { max-width: 1400px; margin: 0 auto; }
+
+    .why-hdr {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .why-hdr h2 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 14px;
+      line-height: 1.05;
+    }
+
+    .why-hdr p {
+      font-size: 1.02rem;
+      color: var(--muted);
+      max-width: 440px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+    }
+
+    .why-item { text-align: center; }
+
+    .w-icon {
+      width: 78px;
+      height: 78px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9rem;
+      margin: 0 auto 20px;
+    }
+
+    .w-icon.green { background: var(--green-pale); }
+    .w-icon.pink  { background: var(--pink-light); }
+
+    .why-item h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 9px;
+      letter-spacing: -0.01em;
+    }
+
+    .why-item p {
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ═══ TESTIMONIALS ═══ */
+    .reviews {
+      background: var(--green-ultra);
+      padding: 130px 64px;
+    }
+
+    .reviews-inner { max-width: 1400px; margin: 0 auto; }
+
+    .reviews-hdr {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .reviews-hdr h2 {
+      font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+
+    .reviews-hdr p { color: var(--muted); font-size: 0.96rem; }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .r-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(61,122,42,0.07);
+    }
+
+    .stars { color: var(--gold); font-size: 0.96rem; letter-spacing: 3px; margin-bottom: 16px; }
+
+    .r-text {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .r-author { display: flex; align-items: center; gap: 12px; }
+
+    .r-av {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .av1 { background: var(--green-pale); }
+    .av2 { background: var(--pink-light); }
+    .av3 { background: #e0f4e8; }
+
+    .r-name { font-weight: 800; font-size: 0.9rem; }
+    .r-loc  { font-size: 0.76rem; color: var(--muted); }
+
+    /* ═══ NEWSLETTER ═══ */
+    .newsletter {
+      background: linear-gradient(135deg, var(--green-deep) 0%, #1a3d0f 50%, #2d1a25 100%);
+      padding: 110px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .newsletter::before {
+      content: '';
+      position: absolute;
+      top: -150px; right: -150px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(244,114,182,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .newsletter::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: -100px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(106,184,71,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .newsletter > * { position: relative; z-index: 1; }
+
+    .newsletter h2 {
+      font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.04em;
+      margin-bottom: 14px;
+      line-height: 1.1;
+    }
+
+    .newsletter h2 span { color: var(--pink); }
+
+    .newsletter p {
+      color: rgba(255,255,255,0.48);
+      font-size: 1.02rem;
+      margin-bottom: 42px;
+    }
+
+    .nl-form {
+      display: flex;
+      gap: 12px;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .nl-form input {
+      flex: 1;
+      padding: 15px 24px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 100px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .nl-form input::placeholder { color: rgba(255,255,255,0.36); }
+    .nl-form input:focus { border-color: var(--pink); }
+
+    .nl-form button {
+      padding: 15px 30px;
+      background: var(--pink);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .nl-form button:hover { background: var(--pink-deep); transform: translateY(-2px); }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      background: var(--dark);
+      padding: 70px 64px 40px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .f-logo {
+      font-size: 1.9rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.04em;
+      margin-bottom: 14px;
+    }
+
+    .f-logo span { color: var(--pink); }
+
+    .footer-brand p {
+      color: rgba(255,255,255,0.3);
+      font-size: 0.86rem;
+      max-width: 220px;
+      line-height: 1.65;
+    }
+
+    .f-col h4 {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .f-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+    .f-col a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.86rem;
+      transition: color 0.2s;
+    }
+
+    .f-col a:hover { color: var(--pink); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-bottom p { color: rgba(255,255,255,0.2); font-size: 0.76rem; }
+
+    .socials { display: flex; gap: 10px; }
+
+    .soc {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .soc:hover { background: var(--pink); }
+
+    /* ═══ ANIMATIONS ═══ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 1100px) {
+      .hero-floats { display: none; }
+      .products-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .p-card.big { grid-column: 1 / span 2; grid-row: auto; }
+      .why-grid { grid-template-columns: repeat(2, 1fr); }
+      .reviews-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      nav, nav.scrolled { padding: 16px 22px; }
+      .nav-links { display: none; }
+      .hero { padding: 110px 22px 70px; }
+      .hero-scroll-hint { left: 22px; }
+      .about { grid-template-columns: 1fr; padding: 80px 22px; gap: 44px; }
+      .products { padding: 80px 22px; }
+      .products-hdr { flex-direction: column; align-items: flex-start; }
+      .products-hdr p { text-align: left; }
+      .products-grid { grid-template-columns: 1fr; }
+      .p-card.big { grid-column: auto; }
+      .why { padding: 80px 22px; }
+      .reviews { padding: 80px 22px; }
+      .reviews-grid { grid-template-columns: 1fr; }
+      .newsletter { padding: 80px 22px; }
+      .nl-form { flex-direction: column; }
+      footer { padding: 50px 22px 28px; }
+      .footer-top { flex-wrap: wrap; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
-<canvas id="fx-canvas"></canvas>
-<div id="combo-banner"></div>
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">matsh<span>-it</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">Story</a></li>
+    <li><a href="#products">Produkte</a></li>
+    <li><a href="#why">Warum wir</a></li>
+    <li><a href="#shop" class="nav-cta">Jetzt shoppen</a></li>
+  </ul>
+</nav>
 
-<!-- ══ START SCREEN ══ -->
-<div class="screen" id="screen-start">
-  <div class="game-logo">
-    <span class="emoji">🪑</span>
-    <h1>STACKING CHAIRS</h1>
-    <p class="tagline">Stapel Stühle — räume Reihen!</p>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-mid-glow"></div>
+  <div class="hero-content">
+    <span class="eyebrow">Premium Matcha &amp; Zubehör</span>
+    <h1>matsh<span class="accent">-it</span></h1>
+    <p class="hero-sub">Echter Matcha. Echtes Design. Für Menschen, die den Unterschied schmecken und leben.</p>
+    <div class="hero-btns">
+      <a href="#products" class="btn btn-pink">Produkte entdecken</a>
+      <a href="#about" class="btn btn-outline">Unsere Story</a>
+    </div>
   </div>
-  <div class="best-display">🏆 Bester Score: <span class="val" id="start-best">0</span></div>
-  <div class="how-to">
-    <strong>So geht's:</strong><br>
-    Ziehe Stuhlgruppen auf das Raster.<br>
-    Wenn eine Reihe oder Spalte<br>
-    <strong>komplett voll</strong> ist, verschwindet sie. 🪑
+  <div class="hero-floats">
+    <div class="float-card">
+      <span class="fn">137×</span>
+      <span class="fl">mehr Antioxidantien<br>als normaler Tee</span>
+    </div>
+    <div class="float-card">
+      <span class="fn">100%</span>
+      <span class="fl">Japanischer<br>Ursprung</span>
+    </div>
+    <div class="float-card">
+      <span class="fn">★ 4.9</span>
+      <span class="fl">aus 2.400+<br>Bewertungen</span>
+    </div>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-    <button class="btn-start" id="btn-start">Spiel starten</button>
-    <button class="btn-speed" id="btn-speed">⚡ Speed Mode — 2 Min</button>
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-bar">
+  <div class="marquee-track">
+    <span class="m-item">Ceremonial Grade <span class="m-sep"></span></span>
+    <span class="m-item">Direkt aus Japan <span class="m-sep"></span></span>
+    <span class="m-item">Matcha Strawberry <span class="m-sep"></span></span>
+    <span class="m-item">Rosa Zubehör <span class="m-sep"></span></span>
+    <span class="m-item">Koffein + L-Theanin <span class="m-sep"></span></span>
+    <span class="m-item">Ohne Zusatzstoffe <span class="m-sep"></span></span>
+    <span class="m-item">Laborgeprüft <span class="m-sep"></span></span>
+    <span class="m-item">CO₂-neutral <span class="m-sep"></span></span>
+    <span class="m-item">Ceremonial Grade <span class="m-sep"></span></span>
+    <span class="m-item">Direkt aus Japan <span class="m-sep"></span></span>
+    <span class="m-item">Matcha Strawberry <span class="m-sep"></span></span>
+    <span class="m-item">Rosa Zubehör <span class="m-sep"></span></span>
+    <span class="m-item">Koffein + L-Theanin <span class="m-sep"></span></span>
+    <span class="m-item">Ohne Zusatzstoffe <span class="m-sep"></span></span>
+    <span class="m-item">Laborgeprüft <span class="m-sep"></span></span>
+    <span class="m-item">CO₂-neutral <span class="m-sep"></span></span>
   </div>
 </div>
 
-<!-- ══ GAME SCREEN ══ -->
-<div class="screen hidden" id="screen-game">
-  <div class="hud">
-    <div class="score-card">
-      <div class="lbl">Punkte</div>
-      <div class="val" id="hud-score">0</div>
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-img reveal">
+    <div class="about-card-vis">
+      <div class="leaf-bg">🍵</div>
+      <span class="card-chip">Seit 2024</span>
+      <div class="card-quote">
+        "Matcha ist kein Trend.<br><em>Matcha ist eine Haltung.</em>"
+      </div>
     </div>
-    <div class="score-card">
-      <div class="lbl">Rekord</div>
-      <div class="val" id="hud-best">0</div>
-    </div>
-    <div class="score-card">
-      <div class="lbl">Reihen</div>
-      <div class="val" id="hud-lines">0</div>
-    </div>
-    <div class="score-card hidden" id="timer-card">
-      <div class="lbl">⚡ Zeit</div>
-      <div class="val" id="hud-timer">2:00</div>
+    <div class="gold-pip">
+      <span class="pn">100%</span>
+      <span class="pl">natürlich</span>
     </div>
   </div>
-  <div id="grid-wrap">
-    <div id="grid"></div>
+  <div class="about-text reveal">
+    <div class="section-label">Unsere Geschichte</div>
+    <h2>Matcha &amp; Style —<br>endlich vereint.</h2>
+    <p>
+      matsh-it entstand aus einer einfachen Überzeugung: Echter Matcha und gutes Design gehören zusammen.
+      Wir beziehen unseren Matcha direkt aus den Bergregionen Japans – und gestalten Zubehör,
+      das genauso schön ist wie dein Lieblingsgetränk.
+    </p>
+    <p>
+      Kein Füllstoff. Kein Blödsinn. Nur das Beste – in Rosa und Grün.
+    </p>
+    <div class="tag-cloud">
+      <span class="tag tag-green">🌿 Direkt aus Japan</span>
+      <span class="tag tag-green">☀️ Schattenanbau</span>
+      <span class="tag tag-pink">🌸 Rosa Zubehör</span>
+      <span class="tag tag-green">🔬 Laborgeprüft</span>
+      <span class="tag tag-pink">💚 Matcha Strawberry</span>
+      <span class="tag tag-green">📦 CO₂-neutral</span>
+    </div>
+    <a href="#products" class="btn btn-pink">Jetzt entdecken</a>
   </div>
-  <div id="tray"></div>
-</div>
+</section>
 
-<!-- ══ GAME OVER SCREEN ══ -->
-<div class="screen hidden" id="screen-over">
-  <h2>Game Over 🪑</h2>
-  <div class="over-stats">
-    <div class="over-stat">
-      <div class="lbl">Punkte</div>
-      <div class="val" id="over-score">0</div>
+<!-- PRODUCTS -->
+<section class="products" id="products">
+  <div class="products-inner">
+    <div class="products-hdr reveal">
+      <h2>Unsere<br><span>Produkte</span></h2>
+      <p>Matcha, Zubehör und Design — alles, was du brauchst.</p>
     </div>
-    <div class="over-stat">
-      <div class="lbl">Rekord</div>
-      <div class="val gold" id="over-best">0</div>
-    </div>
-    <div class="over-stat">
-      <div class="lbl">Reihen</div>
-      <div class="val" id="over-lines">0</div>
-    </div>
-  </div>
-  <div class="new-best hidden" id="new-best-msg">🏆 Neuer Rekord!</div>
-  <div class="over-btns">
-    <button class="btn-action" id="btn-restart">Nochmal</button>
-    <button class="btn-ghost"  id="btn-menu">Menü</button>
-  </div>
-</div>
+    <div class="products-grid">
 
-<!-- ══ YOU WIN SCREEN ══ -->
-<div class="screen hidden" id="screen-win">
-  <h2>You Win! 🏆</h2>
-  <div class="over-stats">
-    <div class="over-stat">
-      <div class="lbl">Punkte</div>
-      <div class="val gold" id="win-score">0</div>
-    </div>
-    <div class="over-stat">
-      <div class="lbl">Rekord</div>
-      <div class="val gold" id="win-best">0</div>
-    </div>
-    <div class="over-stat">
-      <div class="lbl">Zeit</div>
-      <div class="val" id="win-time">0:00</div>
-    </div>
-  </div>
-  <div class="over-btns">
-    <button class="btn-action" id="btn-win-restart">Nochmal</button>
-    <button class="btn-ghost"  id="btn-win-menu">Menü</button>
-  </div>
-</div>
+      <!-- 1: Matcha Dose – FEATURED (big, left, spans 2 rows) -->
+      <div class="p-card big c-matcha-tin reveal">
+        <div class="p-body">
+          <div class="p-icon">🫙</div>
+          <div>
+            <span class="p-chip">Bestseller</span>
+            <div class="p-name">Matcha-Dose<br>Rosa &amp; Grün</div>
+            <div class="p-desc">Ceremonial Grade Matcha in unserer ikonischen Dose mit dem matsh-it Logo in Rosa und Grün. Erste Ernte aus Uji, Japan. Samtig, komplex, unvergleichlich.</div>
+            <div class="p-footer">
+              <span class="p-price">€34,90</span>
+              <button class="cart-btn" aria-label="In den Warenkorb">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<!-- Drag ghost -->
-<div id="ghost"></div>
+      <!-- 2: Stanley Cup -->
+      <div class="p-card c-stanley reveal">
+        <div class="p-body">
+          <div class="p-icon">🥤</div>
+          <div>
+            <span class="p-chip">Limitiert</span>
+            <div class="p-name">Stanley Cup<br>Matcha Strawberry</div>
+            <div class="p-desc">40 oz Tumbler im exklusiven Matcha-Strawberry-Design. Rosa &amp; Grün, doppelwandig, für heiß und kalt.</div>
+            <div class="p-footer">
+              <span class="p-price">€44,90</span>
+              <button class="cart-btn" aria-label="In den Warenkorb">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3: Glass -->
+      <div class="p-card c-glass reveal">
+        <div class="p-body">
+          <div class="p-icon">🥃</div>
+          <div>
+            <span class="p-chip">Neu</span>
+            <div class="p-name">Matcha-Glas<br>Medium</div>
+            <div class="p-desc">Elegantes Borosilikatglas, 400 ml. Ideal für Iced Matcha Latte und Cold Brew. Grüner Akzent am Boden.</div>
+            <div class="p-footer">
+              <span class="p-price">€18,90</span>
+              <button class="cart-btn" aria-label="In den Warenkorb">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4: Tumbler mit Deckel & Strohhalm in Rosa -->
+      <div class="p-card c-tumbler reveal">
+        <div class="p-body">
+          <div class="p-icon">🧋</div>
+          <div>
+            <span class="p-chip">Fan-Fav</span>
+            <div class="p-name">Becher Rosa<br>mit Deckel &amp; Strohhalm</div>
+            <div class="p-desc">Pastellrosa Becher mit Schraubdeckel und passendem Strohhalm, 500 ml. Spülmaschinengeeignet.</div>
+            <div class="p-footer">
+              <span class="p-price">€22,90</span>
+              <button class="cart-btn" aria-label="In den Warenkorb">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5: Strohhalm-Set in Matcha-Farben -->
+      <div class="p-card c-straws reveal">
+        <div class="p-body">
+          <div class="p-icon">✨</div>
+          <div>
+            <span class="p-chip">Set</span>
+            <div class="p-name">Strohhalm-Pack<br>5 Matcha-Farben</div>
+            <div class="p-desc">5 wiederverwendbare Strohhalme in Matcha-Grüntönen — von Sage bis Deep Forest. Plastikfrei, mit Reinigungsbürste.</div>
+            <div class="p-footer">
+              <span class="p-price">€12,90</span>
+              <button class="cart-btn" aria-label="In den Warenkorb">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why" id="why">
+  <div class="why-inner">
+    <div class="why-hdr reveal">
+      <div class="section-label">Warum matsh-it</div>
+      <h2>Der Unterschied<br>ist spürbar.</h2>
+      <p>Qualität, die man sieht, schmeckt und fühlt — von der Plantage bis in dein Glas.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-item reveal">
+        <div class="w-icon green">🌱</div>
+        <h3>Direkter Import</h3>
+        <p>Wir arbeiten direkt mit Farmen in Uji &amp; Kagoshima. Kein Mittelmann, volle Qualitätskontrolle, maximale Frische.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="w-icon pink">🌸</div>
+        <h3>Design-Zubehör</h3>
+        <p>Unser Zubehör ist so schön wie dein Matcha. Rosa Töne treffen matcha grün – ein Look, der auffällt.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="w-icon green">⚡</div>
+        <h3>Fokus ohne Crash</h3>
+        <p>Koffein + L-Theanin: natürliche Energie, klarer Kopf, kein nervöses Zittern — der perfekte Morgenboost.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="w-icon pink">🌍</div>
+        <h3>Nachhaltig</h3>
+        <p>100% recycelbare Verpackung, wiederverwendbares Zubehör, CO₂-kompensierter Versand. Gut für dich, gut für die Welt.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="reviews">
+  <div class="reviews-inner">
+    <div class="reviews-hdr reveal">
+      <div class="section-label">Community</div>
+      <h2>Was die Community sagt.</h2>
+      <p>Über 2.400 Bewertungen · Ø 4.9 Sterne</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="r-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="r-text">"Die Matcha-Dose sieht so ästhetisch aus, ich mag sie fast nicht öffnen. Aber der Geschmack überzeugt noch mehr als das Design. Absolut top!"</p>
+        <div class="r-author">
+          <div class="r-av av1">🧘</div>
+          <div>
+            <div class="r-name">Sarah M.</div>
+            <div class="r-loc">München</div>
+          </div>
+        </div>
+      </div>
+      <div class="r-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="r-text">"Der Stanley Cup im Matcha Strawberry Design ist mein absolutes Lieblingsteil. Bekomme überall Komplimente darauf. Und der Matcha drin ist natürlich auch der Wahnsinn."</p>
+        <div class="r-author">
+          <div class="r-av av2">🌸</div>
+          <div>
+            <div class="r-name">Lena K.</div>
+            <div class="r-loc">Berlin</div>
+          </div>
+        </div>
+      </div>
+      <div class="r-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="r-text">"Die Strohhalme in Matcha-Farben sind ein Dream! Plastikfrei, schön und genau das richtige Accessoire für meine Morning Routine."</p>
+        <div class="r-author">
+          <div class="r-av av3">💚</div>
+          <div>
+            <div class="r-name">Jana P.</div>
+            <div class="r-loc">Hamburg</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter" id="shop">
+  <div class="section-label" style="color:rgba(255,255,255,0.4)">Bleib auf dem Laufenden</div>
+  <h2>10% auf deine<br><span>erste Bestellung.</span></h2>
+  <p>Meld dich an – dein Rabattcode landet direkt im Postfach.</p>
+  <form class="nl-form" onsubmit="onSub(event)">
+    <input type="email" placeholder="deine@email.de" required>
+    <button type="submit" id="nl-btn">Jetzt sichern</button>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="f-logo">matsh<span>-it</span></div>
+      <p>Premium Matcha &amp; Design-Zubehör. Für Menschen, die den Unterschied schmecken und leben.</p>
+    </div>
+    <div class="f-col">
+      <h4>Produkte</h4>
+      <ul>
+        <li><a href="#">Matcha-Dose Rosa &amp; Grün</a></li>
+        <li><a href="#">Stanley Cup Strawberry</a></li>
+        <li><a href="#">Matcha-Glas Medium</a></li>
+        <li><a href="#">Becher Rosa mit Strohhalm</a></li>
+        <li><a href="#">Strohhalm-Pack 5er</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>Unternehmen</h4>
+      <ul>
+        <li><a href="#">Über uns</a></li>
+        <li><a href="#">Nachhaltigkeit</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Kontakt</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>Rechtliches</h4>
+      <ul>
+        <li><a href="#">Impressum</a></li>
+        <li><a href="#">Datenschutz</a></li>
+        <li><a href="#">AGB</a></li>
+        <li><a href="#">Widerruf</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 matsh-it. Alle Rechte vorbehalten.</p>
+    <div class="socials">
+      <a href="#" class="soc" aria-label="Instagram">📷</a>
+      <a href="#" class="soc" aria-label="TikTok">🎵</a>
+      <a href="#" class="soc" aria-label="Pinterest">📌</a>
+    </div>
+  </div>
+</footer>
 
 <script>
-/* ═══════════════════════════════════════════
-   CONSTANTS & DATA
-═══════════════════════════════════════════ */
-const GS = 8;
-const CELL = 52, GAP = 3, PAD = 7;
-const STEP = CELL + GAP;
+  // Sticky nav
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 55);
+  }, { passive: true });
 
-const COLORS = [
-  { bg:'#b01840', lt:'#ff80aa', name:'erdbeere'  },  // 🍓 strawberry
-  { bg:'#2d6e33', lt:'#86c472', name:'matcha'    },  // 🍵 matcha
-  { bg:'#1565a0', lt:'#90caf9', name:'eis-blau'  },  // 🧊 ice blue
-  { bg:'#880038', lt:'#f48fb1', name:'himbeere'  },  // raspberry
-  { bg:'#1b5e3a', lt:'#a5d6a7', name:'minze'     },  // mint
-  { bg:'#7b1034', lt:'#f06292', name:'kirsche'   },  // cherry
-  { bg:'#0d4a72', lt:'#b3e5fc', name:'eis'       },  // ice
-  { bg:'#3a6e2a', lt:'#c5e1a5', name:'hell-matcha'},  // light matcha
-];
-
-const SPEED_WIN_SCORE = 1000;
-
-const SHAPES = [
-  { id:'1x1',    cells:[[0,0]] },
-  { id:'1x2',    cells:[[0,0],[0,1]] },
-  { id:'2x1',    cells:[[0,0],[1,0]] },
-  { id:'1x3',    cells:[[0,0],[0,1],[0,2]] },
-  { id:'3x1',    cells:[[0,0],[1,0],[2,0]] },
-  { id:'2x2',    cells:[[0,0],[0,1],[1,0],[1,1]] },
-  { id:'L',      cells:[[0,0],[1,0],[2,0],[2,1]] },
-  { id:'J',      cells:[[0,1],[1,1],[2,0],[2,1]] },
-  { id:'T',      cells:[[0,0],[0,1],[0,2],[1,1]] },
-  { id:'S',      cells:[[0,1],[0,2],[1,0],[1,1]] },
-  { id:'Z',      cells:[[0,0],[0,1],[1,1],[1,2]] },
-  { id:'line4',  cells:[[0,0],[0,1],[0,2],[0,3]] },
-  { id:'line4v', cells:[[0,0],[1,0],[2,0],[3,0]] },
-  { id:'corner', cells:[[0,0],[1,0],[1,1]] },
-  { id:'U',      cells:[[0,0],[0,2],[1,0],[1,1],[1,2]] },
-  { id:'2x3',    cells:[[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]] },
-];
-
-/* ═══════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════ */
-let grid, score, bestScore, linesCleared, pieces, batchColor;
-let placementCount=0, ufoCell=null;
-let speedMode=false, speedTimerInterval=null, timeLeft=0;
-let dragIdx=null, dragOff=[0,0], ghostInfo=null;
-
-/* ═══════════════════════════════════════════
-   AUDIO  (Web Audio API — no files needed)
-═══════════════════════════════════════════ */
-let audio;
-function initAudio() {
-  try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-}
-function playTone(freq, dur, type='sine', vol=.18) {
-  if (!audio) return;
-  const o = audio.createOscillator();
-  const g = audio.createGain();
-  o.connect(g); g.connect(audio.destination);
-  o.type = type; o.frequency.value = freq;
-  g.gain.setValueAtTime(vol, audio.currentTime);
-  g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + dur);
-  o.start(); o.stop(audio.currentTime + dur);
-}
-function soundPlace()  { playTone(300,.08,'square',.12); setTimeout(()=>playTone(420,.07,'square',.08),60); }
-function soundClear()  { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.15,'sine',.14),i*70)); }
-function soundCombo()  { [659,784,1047,1319].forEach((f,i)=>setTimeout(()=>playTone(f,.18,'sine',.16),i*60)); }
-function soundOver()   { [400,330,262].forEach((f,i)=>setTimeout(()=>playTone(f,.3,'sawtooth',.1),i*180)); }
-
-/* ═══════════════════════════════════════════
-   BACKGROUND ANIMATION
-═══════════════════════════════════════════ */
-const bgCanvas = document.getElementById('bg-canvas');
-const bgCtx = bgCanvas.getContext('2d');
-const fxCanvas = document.getElementById('fx-canvas');
-const fxCtx = fxCanvas.getContext('2d');
-
-let bgChairs = [];
-function initBg() {
-  bgCanvas.width = fxCanvas.width = innerWidth;
-  bgCanvas.height = fxCanvas.height = innerHeight;
-  bgChairs = Array.from({length:18},()=>({
-    x: Math.random()*innerWidth,
-    y: Math.random()*innerHeight,
-    vy: .2 + Math.random()*.5,
-    vx: (Math.random()-.5)*.3,
-    rot: Math.random()*Math.PI*2,
-    vr: (Math.random()-.5)*.01,
-    size: 14+Math.random()*20,
-    alpha: .04+Math.random()*.06,
-    color: COLORS[Math.floor(Math.random()*COLORS.length)].lt,
-  }));
-}
-function drawBg(ts) {
-  bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
-  bgChairs.forEach(c=>{
-    c.x+=c.vx; c.y+=c.vy; c.rot+=c.vr;
-    if(c.y>innerHeight+40) { c.y=-40; c.x=Math.random()*innerWidth; }
-    bgCtx.save();
-    bgCtx.globalAlpha=c.alpha;
-    bgCtx.translate(c.x,c.y);
-    bgCtx.rotate(c.rot);
-    bgCtx.font=`${c.size}px serif`;
-    bgCtx.textAlign='center';
-    bgCtx.textBaseline='middle';
-    bgCtx.fillText('🪑',0,0);
-    bgCtx.restore();
-  });
-  requestAnimationFrame(drawBg);
-}
-
-/* ═══════════════════════════════════════════
-   CONFETTI CANNON
-═══════════════════════════════════════════ */
-const CONFETTI_COLORS = [
-  '#f87171','#fb923c','#fbbf24','#34d399',
-  '#60a5fa','#a78bfa','#f472b6','#fff',
-  '#38bdf8','#4ade80','#facc15','#e879f9',
-];
-let confetti=[];
-
-function fireConfettiCannon(x, y, dirX) {
-  /* dirX: -1 = shoots left-to-right, +1 = right-to-left */
-  for(let i=0;i<55;i++) {
-    const spread = (Math.random()-.5) * 1.8;   // vertical spread
-    const power  = 6 + Math.random() * 10;
-    confetti.push({
-      x, y,
-      vx: dirX * power * (.6 + Math.random()*.4),
-      vy: -power * (.2 + Math.random()*.6) + spread * 2,
-      w:  5 + Math.random()*7,
-      h:  3 + Math.random()*5,
-      rot: Math.random()*Math.PI*2,
-      vr: (Math.random()-.5)*.35,
-      color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
-      life: 1,
-      decay: .008 + Math.random()*.006,
+  // Reveal on scroll
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        obs.unobserve(e.target);
+      }
     });
-  }
-}
+  }, { threshold: 0.1 });
 
-function shootConfettiAtGrid() {
-  const rect = gridEl.getBoundingClientRect();
-  const midY = rect.top + rect.height * .35;
-  fireConfettiCannon(rect.left  + 10, midY, +1);  // left cannon → right
-  fireConfettiCannon(rect.right - 10, midY, -1);  // right cannon → left
-}
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-function tickParticles() {
-  fxCtx.clearRect(0,0,fxCanvas.width,fxCanvas.height);
-  confetti = confetti.filter(p=>p.life>0);
-  confetti.forEach(p=>{
-    p.x  += p.vx;
-    p.y  += p.vy;
-    p.vy += .28;          // gravity
-    p.vx *= .98;          // air resistance
-    p.rot+= p.vr;
-    p.life -= p.decay;
-    fxCtx.save();
-    fxCtx.globalAlpha = Math.max(0, p.life);
-    fxCtx.fillStyle   = p.color;
-    fxCtx.translate(p.x, p.y);
-    fxCtx.rotate(p.rot);
-    fxCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-    fxCtx.restore();
-  });
-  requestAnimationFrame(tickParticles);
-}
-
-/* ═══════════════════════════════════════════
-   SCREENS
-═══════════════════════════════════════════ */
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-
-/* ═══════════════════════════════════════════
-   GRID DOM
-═══════════════════════════════════════════ */
-const gridEl = document.getElementById('grid');
-
-function buildGrid() {
-  gridEl.innerHTML='';
-  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) {
-    const d=document.createElement('div');
-    d.className='cell'; d.dataset.r=r; d.dataset.c=c;
-    gridEl.appendChild(d);
-  }
-}
-
-function cell(r,c) { return gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); }
-
-function chairHTML(col, small=false) {
-  const w=small?'width:16px;height:16px':'width:38px;height:38px';
-  const bw=small?10:26, bh=small?4:10;
-  const sw=small?12:30, sh=small?5:13;
-  const gp=small?5:12, lw=small?3:5, lh=small?3:7;
-  return `<div class="chair" style="${w};gap:1px">
-    <div class="c-back" style="width:${bw}px;height:${bh}px;background:${col.lt}"></div>
-    <div class="c-seat" style="width:${sw}px;height:${sh}px;background:${col.bg}"></div>
-    <div class="c-legs" style="gap:${gp}px">
-      <div class="c-leg" style="width:${lw}px;height:${lh}px;background:${col.lt}"></div>
-      <div class="c-leg" style="width:${lw}px;height:${lh}px;background:${col.lt}"></div>
-    </div>
-  </div>`;
-}
-
-function renderGrid() {
-  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) {
-    const el=cell(r,c), e=grid[r][c];
-    const isUFO=ufoCell && ufoCell.r===r && ufoCell.c===c;
-    if(e) {
-      el.className='cell occupied'+(isUFO?' ufo-blocked':'');
-      el.style.background=e.color.bg;
-      el.style.borderColor=isUFO?'#22d3ee':e.color.lt;
-      el.innerHTML=chairHTML(e.color)
-        +(isUFO?`<div class="ufo-overlay">🛸</div><div class="ufo-timer">${ufoCell.remaining}</div>`:'');
-    } else {
-      el.className='cell';
-      el.style.background=''; el.style.borderColor=''; el.innerHTML='';
-    }
-  }
-}
-
-function spawnUFO() {
-  const candidates=[];
-  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++){
-    if(grid[r][c] && !(ufoCell&&ufoCell.r===r&&ufoCell.c===c))
-      candidates.push({r,c});
-  }
-  if(!candidates.length) return;
-  const pick=candidates[Math.floor(Math.random()*candidates.length)];
-  ufoCell={r:pick.r, c:pick.c, remaining:3};
-  renderGrid();
-  // play a little landing animation
-  const el=cell(pick.r,pick.c).querySelector('.ufo-overlay');
-  if(el){ el.classList.remove('landing'); void el.offsetWidth; el.classList.add('landing'); }
-}
-
-/* ═══════════════════════════════════════════
-   PIECES
-═══════════════════════════════════════════ */
-function pickNewBatchColor() {
-  let c;
-  do { c = COLORS[Math.floor(Math.random()*COLORS.length)]; } while(c === batchColor);
-  batchColor = c;
-}
-
-function boardIsEmpty() {
-  return grid.every(row=>row.every(v=>!v));
-}
-
-// Returns rows/cols sorted by how full they are (most filled first)
-function getTargets() {
-  const t=[];
-  for(let r=0;r<GS;r++){
-    const filled=grid[r].filter(v=>v).length;
-    if(filled<GS) t.push({type:'row',idx:r,filled});
-  }
-  for(let c=0;c<GS;c++){
-    const filled=grid.filter(row=>row[c]).length;
-    if(filled<GS) t.push({type:'col',idx:c,filled});
-  }
-  return t.sort((a,b)=>b.filled-a.filled);
-}
-
-// Check if placing this shape anywhere would complete a specific row or col
-function shapeCompletesTarget(shape, target) {
-  for(let ar=0;ar<GS;ar++) for(let ac=0;ac<GS;ac++){
-    if(!canPlace(shape,ar,ac)) continue;
-    const sim=grid.map(row=>[...row]);
-    shape.cells.forEach(([dr,dc])=>{sim[ar+dr][ac+dc]=1;});
-    if(target.type==='row' && sim[target.idx].every(v=>v)) return true;
-    if(target.type==='col' && sim.every(row=>row[target.idx])) return true;
-  }
-  return false;
-}
-
-function newPieces() {
-  const usedShapes=new Set();
-  const targets=getTargets();
-  // shuffle shapes so we don't always pick the same ones
-  const shuffled=[...SHAPES].sort(()=>Math.random()-.5);
-
-  pieces=[0,1,2].map(()=>{
-    // Find any unused shape that completes one of the targets (most-full first)
-    for(const shape of shuffled){
-      if(usedShapes.has(shape.id)) continue;
-      for(const target of targets){
-        if(shapeCompletesTarget(shape,target)){
-          usedShapes.add(shape.id);
-          return {shape,color:batchColor};
-        }
-      }
-    }
-    // Fallback: prefer unused shapes that actually fit somewhere on the board
-    for(const shape of shuffled){
-      if(usedShapes.has(shape.id)) continue;
-      for(let r=0;r<GS;r++) for(let c=0;c<GS;c++){
-        if(canPlace(shape,r,c)){ usedShapes.add(shape.id); return{shape,color:batchColor}; }
-      }
-    }
-    // Nothing fits at all — pick any unused (game over will legitimately trigger after)
-    for(const shape of shuffled){
-      if(!usedShapes.has(shape.id)){usedShapes.add(shape.id);return{shape,color:batchColor};}
-    }
-    return {shape:shuffled[0],color:batchColor};
-  });
-
-  buildTray();
-}
-
-function buildTray() {
-  const tray=document.getElementById('tray');
-  tray.innerHTML='';
-  pieces.forEach((p,i)=>{
-    const w=document.createElement('div');
-    w.className='pw'+(p?'':' used');
-    w.dataset.idx=i;
-    if(p) {
-      const rows=Math.max(...p.shape.cells.map(c=>c[0]))+1;
-      const cols=Math.max(...p.shape.cells.map(c=>c[1]))+1;
-      const pg=document.createElement('div');
-      pg.className='pgrid';
-      pg.style.gridTemplateColumns=`repeat(${cols},26px)`;
-      pg.style.gridTemplateRows=`repeat(${rows},26px)`;
-      const set=new Set(p.shape.cells.map(([r,c])=>`${r},${c}`));
-      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
-        const pc=document.createElement('div');
-        if(set.has(`${r},${c}`)) {
-          pc.className='pcell';
-          pc.style.background=p.color.bg;
-          pc.style.borderColor=p.color.lt;
-          pc.innerHTML=chairHTML(p.color,true);
-        } else {
-          pc.style.width='26px'; pc.style.height='26px';
-        }
-        pg.appendChild(pc);
-      }
-      w.appendChild(pg);
-      w.addEventListener('mousedown',e=>startDrag(e,i));
-      w.addEventListener('touchstart',e=>startDrag(e,i),{passive:false});
-    }
-    tray.appendChild(w);
-  });
-}
-
-/* ═══════════════════════════════════════════
-   DRAG & DROP
-═══════════════════════════════════════════ */
-const ghostEl=document.getElementById('ghost');
-let dragging=false;
-
-function startDrag(e,idx) {
-  if(!pieces[idx]) return;
-  initAudio();
-  e.preventDefault();
-  dragIdx=idx; dragging=true;
-  const p=pieces[idx];
-  const rows=Math.max(...p.shape.cells.map(c=>c[0]))+1;
-  const cols=Math.max(...p.shape.cells.map(c=>c[1]))+1;
-  dragOff=[Math.floor(rows/2), Math.floor(cols/2)];
-
-  // Build ghost
-  ghostEl.style.display='grid';
-  ghostEl.style.gridTemplateColumns=`repeat(${cols},${CELL}px)`;
-  ghostEl.style.gridTemplateRows=`repeat(${rows},${CELL}px)`;
-  ghostEl.style.gap=GAP+'px';
-  ghostEl.innerHTML='';
-  const set=new Set(p.shape.cells.map(([r,c])=>`${r},${c}`));
-  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
-    const gc=document.createElement('div');
-    gc.style.width=CELL+'px'; gc.style.height=CELL+'px';
-    gc.style.borderRadius='7px';
-    if(set.has(`${r},${c}`)) {
-      gc.style.background=p.color.bg;
-      gc.style.border=`2px solid ${p.color.lt}`;
-      gc.style.display='flex'; gc.style.alignItems='center'; gc.style.justifyContent='center';
-      gc.innerHTML=chairHTML(p.color);
-      gc.style.opacity='.85';
-    }
-    ghostEl.appendChild(gc);
+  // Newsletter
+  function onSub(e) {
+    e.preventDefault();
+    const btn = document.getElementById('nl-btn');
+    btn.textContent = '✓ Abonniert!';
+    btn.style.background = '#fff';
+    btn.style.color = '#111';
+    setTimeout(() => {
+      btn.textContent = 'Jetzt sichern';
+      btn.style.background = '';
+      btn.style.color = '';
+      e.target.reset();
+    }, 3000);
   }
 
-  trayPW(idx).classList.add('dragging');
-  moveGhost(e);
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('mouseup',onEnd);
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('touchend',onEnd);
-}
-
-function trayPW(i){ return document.getElementById('tray').querySelectorAll('.pw')[i]; }
-
-function clientXY(e){ return e.touches?{x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY}; }
-
-function moveGhost(e) {
-  const {x,y}=clientXY(e);
-  ghostEl.style.left=(x - dragOff[1]*STEP - CELL/2)+'px';
-  ghostEl.style.top =(y - dragOff[0]*STEP - CELL/2)+'px';
-  clearHi();
-  const t=cellAt(x,y);
-  if(t) {
-    const ar=t[0]-dragOff[0], ac=t[1]-dragOff[1];
-    const ok=canPlace(pieces[dragIdx].shape,ar,ac);
-    pieces[dragIdx].shape.cells.forEach(([dr,dc])=>{
-      const el=cell(ar+dr,ac+dc);
-      if(el) el.classList.add(ok?'hi':'bad');
+  // Cart button feedback
+  document.querySelectorAll('.cart-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      this.textContent = '✓';
+      this.style.background = '#fff';
+      this.style.color = '#111';
+      setTimeout(() => {
+        this.textContent = '+';
+        this.style.background = '';
+        this.style.color = '';
+      }, 1500);
     });
-    ghostInfo={ar,ac,ok};
-  } else { ghostInfo=null; }
-}
-
-function cellAt(x,y) {
-  const rect=gridEl.getBoundingClientRect();
-  const rx=x-rect.left-PAD, ry=y-rect.top-PAD;
-  const c=Math.floor(rx/STEP), r=Math.floor(ry/STEP);
-  return (r>=0&&r<GS&&c>=0&&c<GS)?[r,c]:null;
-}
-
-function clearHi(){ gridEl.querySelectorAll('.hi,.bad').forEach(el=>el.classList.remove('hi','bad')); }
-
-function onMove(e){ e.preventDefault(); moveGhost(e); }
-
-function onEnd(e) {
-  document.removeEventListener('mousemove',onMove);
-  document.removeEventListener('mouseup',onEnd);
-  document.removeEventListener('touchmove',onMove);
-  document.removeEventListener('touchend',onEnd);
-  ghostEl.style.display='none';
-  clearHi();
-  trayPW(dragIdx).classList.remove('dragging');
-  if(ghostInfo?.ok) placePiece(dragIdx,ghostInfo.ar,ghostInfo.ac);
-  dragging=false; dragIdx=null; ghostInfo=null;
-}
-
-/* ═══════════════════════════════════════════
-   GAME LOGIC
-═══════════════════════════════════════════ */
-function canPlace(shape,ar,ac) {
-  return shape.cells.every(([dr,dc])=>{
-    const r=ar+dr,c=ac+dc;
-    return r>=0&&r<GS&&c>=0&&c<GS&&!grid[r][c];
   });
-}
-
-function placePiece(idx,ar,ac) {
-  const p=pieces[idx];
-  p.shape.cells.forEach(([dr,dc])=>{
-    grid[ar+dr][ac+dc]={color:p.color, shapeId:p.shape.id};
-  });
-  pieces[idx]=null;
-
-  // Tick UFO countdown
-  if(ufoCell){
-    ufoCell.remaining--;
-    if(ufoCell.remaining<=0) ufoCell=null;
-  }
-
-  // Every 9 placements a UFO lands
-  placementCount++;
-  if(placementCount%9===0) setTimeout(spawnUFO, 350);
-
-  soundPlace();
-  renderGrid();
-  buildTray();
-  setTimeout(checkClears,100);
-}
-
-function rowClears(r) {
-  if(!grid[r].every(v=>v!==null)) return false;
-  if(ufoCell && ufoCell.r===r) return false; // UFO blocks the row
-  return true;
-}
-function colClears(c) {
-  if(!grid.every(row=>row[c]!==null)) return false;
-  if(ufoCell && ufoCell.c===c) return false; // UFO blocks the column
-  return true;
-}
-
-function checkClears() {
-  const rows=[], cols=[];
-  for(let r=0;r<GS;r++) if(rowClears(r)) rows.push(r);
-  for(let c=0;c<GS;c++) if(colClears(c)) cols.push(c);
-  if(!rows.length&&!cols.length){ checkContinue(); return; }
-
-  const toKill=new Set();
-  rows.forEach(r=>{ for(let c=0;c<GS;c++) toKill.add(`${r},${c}`); });
-  cols.forEach(c=>{ for(let r=0;r<GS;r++) toKill.add(`${r},${c}`); });
-
-  const cellEls=[];
-  toKill.forEach(k=>{
-    const [r,c]=k.split(',').map(Number);
-    const el=cell(r,c);
-    if(el){ el.classList.add('clear-anim'); cellEls.push(el); }
-  });
-  shootConfettiAtGrid();
-
-  const n=rows.length+cols.length;
-  if(n>1) { soundCombo(); showCombo(n); }
-  else soundClear();
-
-  setTimeout(()=>{
-    toKill.forEach(k=>{ const [r,c]=k.split(',').map(Number); grid[r][c]=null; });
-    linesCleared+=n;
-    const pts=n*GS*10 + (n>1?n*60:0);
-    score+=pts;
-    if(score>bestScore){ bestScore=score; localStorage.setItem('cb_best',bestScore); }
-    updateHUD();
-    showScorePop(pts, cellEls[0]);
-    renderGrid();
-    if(boardIsEmpty()) pickNewBatchColor();
-    if(speedMode && score>=SPEED_WIN_SCORE){ speedWin(); return; }
-    checkContinue();
-  },450);
-}
-
-function showCombo(n) {
-  const b=document.getElementById('combo-banner');
-  b.textContent = n>=4?'🏆 MEGA KOMBO!':n>=3?'🪑🪑🪑 DREIFACH!':'🪑🪑 DOPPELT!';
-  b.className=''; void b.offsetWidth; b.className='pop';
-}
-
-function showScorePop(pts, anchorEl) {
-  if(!anchorEl) return;
-  const r=anchorEl.getBoundingClientRect();
-  const pop=document.createElement('div');
-  pop.className='score-pop';
-  pop.textContent='+'+pts;
-  pop.style.left=r.left+'px'; pop.style.top=r.top+'px';
-  document.body.appendChild(pop);
-  pop.addEventListener('animationend',()=>pop.remove());
-}
-
-function updateHUD() {
-  const sv=document.getElementById('hud-score');
-  sv.textContent=score;
-  sv.classList.remove('bump'); void sv.offsetWidth; sv.classList.add('bump');
-  document.getElementById('hud-best').textContent=bestScore;
-  document.getElementById('hud-lines').textContent=linesCleared;
-}
-
-function checkContinue() {
-  // All 3 placed → generate new batch
-  if(pieces.every(p=>!p)) newPieces();
-
-  const ok=pieces.some(p=>{
-    if(!p) return false;
-    for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(canPlace(p.shape,r,c)) return true;
-    return false;
-  });
-  if(!ok) {
-    if(speedMode) {
-      setTimeout(emergencyClear, 400);
-    } else {
-      setTimeout(floodAndGameOver, 300);
-    }
-  }
-}
-
-function floodAndGameOver() {
-  // Collect all empty cells and shuffle them for a random flood effect
-  const empty = [];
-  for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(!grid[r][c]) empty.push({r,c});
-  empty.sort(()=>Math.random()-.5);
-
-  let i=0;
-  const iv=setInterval(()=>{
-    if(i>=empty.length){ clearInterval(iv); setTimeout(gameOver,500); return; }
-    const {r,c}=empty[i++];
-    const col=COLORS[Math.floor(Math.random()*COLORS.length)];
-    grid[r][c]={color:col,shapeId:'flood'};
-    const el=cell(r,c);
-    el.className='cell occupied flood-pop';
-    el.style.background=col.bg;
-    el.style.borderColor=col.lt;
-    el.innerHTML=chairHTML(col);
-  }, 28);
-}
-
-function anyPieceFits() {
-  return pieces.some(p=>{
-    if(!p) return false;
-    for(let r=0;r<GS;r++) for(let c=0;c<GS;c++) if(canPlace(p.shape,r,c)) return true;
-    return false;
-  });
-}
-
-function emergencyClear() {
-  // Clear the 4 most filled rows to make space
-  const rowData = Array.from({length:GS},(_,r)=>({r, n:grid[r].filter(v=>v).length}));
-  rowData.sort((a,b)=>b.n-a.n);
-  rowData.slice(0,4).forEach(({r})=>{ for(let c=0;c<GS;c++) grid[r][c]=null; });
-  renderGrid();
-  newPieces();
-  // If pieces still can't fit, wipe the bottom half entirely
-  if(!anyPieceFits()) {
-    for(let r=Math.floor(GS/2);r<GS;r++) for(let c=0;c<GS;c++) grid[r][c]=null;
-    renderGrid();
-    newPieces();
-  }
-}
-
-function speedWin() {
-  stopSpeedTimer();
-  const remaining = timeLeft;
-  const m = Math.floor(remaining/60), s = remaining%60;
-  document.getElementById('win-score').textContent = score;
-  document.getElementById('win-best').textContent  = bestScore;
-  document.getElementById('win-time').textContent  = m+':'+(s<10?'0':'')+s;
-  // Big confetti salvo
-  for(let i=0;i<6;i++) setTimeout(shootConfettiAtGrid, i*120);
-  setTimeout(()=>showScreen('screen-win'), 400);
-}
-
-function gameOver() {
-  stopSpeedTimer();
-  soundOver();
-  document.getElementById('over-score').textContent=score;
-  document.getElementById('over-best').textContent=bestScore;
-  document.getElementById('over-lines').textContent=linesCleared;
-  const nb=document.getElementById('new-best-msg');
-  nb.classList.toggle('hidden', score<bestScore || score===0);
-  showScreen('screen-over');
-}
-
-/* ═══════════════════════════════════════════
-   SPEED TIMER
-═══════════════════════════════════════════ */
-function startSpeedTimer() {
-  timeLeft = 120;
-  const card = document.getElementById('timer-card');
-  card.classList.remove('hidden','low');
-  updateTimerDisplay();
-  speedTimerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerDisplay();
-    if(timeLeft <= 10) card.classList.add('low');
-    if(timeLeft <= 0) { clearInterval(speedTimerInterval); speedTimerInterval=null; gameOver(); }
-  }, 1000);
-}
-
-function stopSpeedTimer() {
-  if(speedTimerInterval){ clearInterval(speedTimerInterval); speedTimerInterval=null; }
-  document.getElementById('timer-card').classList.add('hidden');
-  document.getElementById('timer-card').classList.remove('low');
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(timeLeft/60);
-  const s = timeLeft%60;
-  document.getElementById('hud-timer').textContent = m+':'+(s<10?'0':'')+s;
-}
-
-/* ═══════════════════════════════════════════
-   START / RESTART
-═══════════════════════════════════════════ */
-function startGame(speed=false) {
-  speedMode = speed;
-  stopSpeedTimer();
-  grid=Array.from({length:GS},()=>Array(GS).fill(null));
-  score=0; linesCleared=0; placementCount=0; ufoCell=null;
-  batchColor = COLORS[Math.floor(Math.random()*COLORS.length)];
-  buildGrid();
-  updateHUD();
-  renderGrid();
-  newPieces();
-  showScreen('screen-game');
-  if(speedMode) startSpeedTimer();
-}
-
-function loadBest() {
-  bestScore=parseInt(localStorage.getItem('cb_best')||'0');
-  document.getElementById('start-best').textContent=bestScore;
-  document.getElementById('hud-best').textContent=bestScore;
-}
-
-/* ═══════════════════════════════════════════
-   WIRING
-═══════════════════════════════════════════ */
-document.getElementById('btn-start').addEventListener('click',()=>{ initAudio(); startGame(false); });
-document.getElementById('btn-speed').addEventListener('click',()=>{ initAudio(); startGame(true); });
-document.getElementById('btn-restart').addEventListener('click',()=>{ initAudio(); startGame(speedMode); });
-document.getElementById('btn-menu').addEventListener('click',()=>{ loadBest(); showScreen('screen-start'); });
-document.getElementById('btn-win-restart').addEventListener('click',()=>{ initAudio(); startGame(true); });
-document.getElementById('btn-win-menu').addEventListener('click',()=>{ loadBest(); showScreen('screen-start'); });
-window.addEventListener('resize',()=>{
-  bgCanvas.width=fxCanvas.width=innerWidth;
-  bgCanvas.height=fxCanvas.height=innerHeight;
-});
-
-/* ═══════════════════════════════════════════
-   BOOT
-═══════════════════════════════════════════ */
-loadBest();
-initBg();
-requestAnimationFrame(drawBg);
-tickParticles();
 </script>
 </body>
 </html>
